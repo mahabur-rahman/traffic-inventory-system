@@ -75,6 +75,7 @@ export function useReserveDropMutation() {
     },
     onError: (err) => {
       notifyError(err);
+      void queryClient.invalidateQueries({ queryKey: dropsKey });
     }
   });
 }

@@ -17,6 +17,29 @@ Environment:
 
 - `VITE_API_URL` (example: `http://localhost:4000`)
 
+## Loom demo script (2 minutes)
+
+1) Terminal:
+   - `cd api && npm run db:migrate`
+   - `cd api && npm run db:seed:reset` (adds 3 drops + sample purchases + expiry demo)
+   - `cd api && npm run dev`
+2) Terminal:
+   - `cd web && npm run dev`
+3) Browser: open 2 windows/tabs side-by-side at `http://localhost:5173`
+4) Sign in on both tabs (username input)
+5) Reserve in tab A:
+   - show stock decrements in tab A
+   - tab B updates instantly via socket (live stock changes + highlight)
+6) Concurrency:
+   - click Reserve quickly in both tabs on last stock
+   - one succeeds, the other shows toast: “Someone else reserved it first”
+7) Expiry:
+   - wait ~60s for reservation countdown to hit 0
+   - stock recovers and both tabs update
+8) Purchase:
+   - reserve then purchase
+   - activity feed updates (top 3 purchasers with relative time)
+
 ### Wireframe (function over form)
 
 ```

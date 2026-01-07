@@ -24,11 +24,11 @@ export function notifyError(err: unknown) {
   const e = normalizeError(err);
   const message = `${e.title}: ${e.message}`;
 
-  if (e.code === "OUT_OF_STOCK") return notifyWarning(message);
+  if (e.code === "OUT_OF_STOCK") return notifyWarning("Someone else reserved it first");
   if (e.code === "DROP_NOT_ACTIVE") return notifyWarning(message);
   if (e.code === "RESERVATION_EXPIRED") return notifyInfo(message);
   if (e.code === "ALREADY_RESERVED") return notifyInfo(message);
-  if (e.code === "CONFLICT") return toast.error(message, { style: baseStyle });
+  if (e.code === "CONFLICT") return notifyWarning("Someone else reserved it first");
 
   return toast.error(message, { style: baseStyle });
 }
