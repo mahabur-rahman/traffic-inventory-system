@@ -289,6 +289,10 @@ Manual trigger (dev only):
 
 - `POST /api/internal/expire-now` (returns `{ expiredCount, updatedDropIds }`)
 
+Dev helpers:
+
+- `POST /api/internal/users` with `{ "username": "alice" }` to create a user for testing and get back a UUID for `X-User-Id`.
+
 ## API conventions
 
 ### Base URL

@@ -27,26 +27,52 @@ export async function reserveOne(params: { dropId: string; userId: string; ttlSe
 
   try {
     return await sequelize.transaction(async (transaction) => {
-      await sequelize.query(
+      const expiredRows = (await sequelize.query(
         `
-          UPDATE reservations
-          SET status = 'expired', "updatedAt" = NOW()
-          WHERE user_id = :userId
-            AND drop_id = :dropId
-            AND status = 'active'
-            AND expires_at IS NOT NULL
-            AND expires_at <= NOW()
+          WITH expired AS (
+            UPDATE reservations
+            SET status = 'expired', "updatedAt" = NOW()
+            WHERE user_id = :userId
+              AND drop_id = :dropId
+              AND status = 'active'
+              AND expires_at IS NOT NULL
+              AND expires_at <= NOW()
+            RETURNING id
+          )
+          SELECT COUNT(*)::int AS expired_count FROM expired
         `,
-        { transaction, replacements: { userId: params.userId, dropId: params.dropId } }
-      );
+        {
+          transaction,
+          replacements: { userId: params.userId, dropId: params.dropId },
+          type: QueryTypes.SELECT
+        }
+      )) as Array<{ expired_count: number }>;
+
+      const expiredCount = expiredRows[0]?.expired_count ?? 0;
+      if (expiredCount > 0) {
+        await sequelize.query(
+          `
+            UPDATE drops
+            SET available_stock = LEAST(total_stock, available_stock + :expiredCount),
+                updated_at = NOW()
+            WHERE id = :dropId
+          `,
+          { transaction, replacements: { dropId: params.dropId, expiredCount } }
+        );
+      }
 
       const updatedRows = (await sequelize.query(
         `
           UPDATE drops
-          SET available_stock = available_stock - 1, updated_at = NOW()
+          SET available_stock = available_stock - 1,
+              status = CASE
+                WHEN status = 'scheduled' AND (starts_at IS NULL OR starts_at <= NOW()) THEN 'live'
+                ELSE status
+              END,
+              updated_at = NOW()
           WHERE id = :dropId
             AND available_stock > 0
-            AND status IN ('live')
+            AND status IN ('live', 'scheduled')
             AND (starts_at IS NULL OR starts_at <= NOW())
             AND (ends_at IS NULL OR ends_at > NOW())
           RETURNING id, available_stock
