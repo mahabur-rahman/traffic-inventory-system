@@ -116,6 +116,77 @@ DB-level protections (recommended):
 ## Endpoints
 
 - `GET /api/v1/health` (includes a quick DB auth check)
+- `POST /api/v1/drops`
+- `GET /api/v1/drops`
+
+## Drops API
+
+### POST `/api/v1/drops`
+
+Creates a drop, initializes stock (`available_stock = total_stock`), and sets status from `starts_at` when `status` is not provided:
+
+- If `starts_at` is missing: `status = "draft"`
+- If `starts_at` is in the future: `status = "scheduled"`
+- If `starts_at` is now/past: `status = "live"`
+
+Request body (JSON):
+
+```json
+{
+  "name": "Sneaker Drop 1",
+  "price": 5000,
+  "total_stock": 100,
+  "starts_at": "2026-01-07T10:00:00.000Z",
+  "ends_at": "2026-01-08T10:00:00.000Z",
+  "status": "scheduled"
+}
+```
+
+Validation middleware:
+
+- `api/src/validators/drop.schemas.ts:1`
+- `api/src/middlewares/validate.ts:1`
+
+### GET `/api/v1/drops`
+
+Returns “active” drops (status `scheduled` or `live`, and not ended) with `available_stock`, pagination metadata, and an activity feed containing top 3 latest purchasers per drop.
+
+Response JSON:
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "uuid",
+        "name": "Sneaker Drop 1",
+        "price": 5000,
+        "total_stock": 100,
+        "available_stock": 90,
+        "starts_at": "2026-01-07T10:00:00.000Z",
+        "ends_at": null,
+        "status": "live",
+        "created_by": "uuid",
+        "created_at": "2026-01-07T09:00:00.000Z",
+        "activity_feed": {
+          "latest_purchasers": [
+            { "user_id": "uuid", "username": "alice", "qty": 1, "created_at": "2026-01-07T10:01:00.000Z" }
+          ]
+        }
+      }
+    ],
+    "pagination": { "limit": 20, "offset": 0, "total": 1 }
+  },
+  "meta": { "requestId": "..." }
+}
+```
+
+Efficient “latest 3 purchasers per drop” query:
+
+- Service: `api/src/services/drops.service.ts:1`
+- SQL (window function via `ROW_NUMBER()`):
+  - `WITH ranked AS ( ... ROW_NUMBER() OVER (PARTITION BY p.drop_id ORDER BY p."createdAt" DESC) ... ) SELECT ... WHERE rn <= 3`
 
 ## API conventions
 
