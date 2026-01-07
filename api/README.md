@@ -1,4 +1,4 @@
-# API (Express + Sequelize + Postgres/Neon)
+# API (Express + Sequelize + Postgres/Neon + TypeScript)
 
 ## Recommended layout
 
@@ -6,29 +6,30 @@
 api/
   src/
     config/
-      env.js
-      database.js
+      env.ts
     controllers/
-      health.controller.js
+      health.controller.ts
+    db/
+      migrations/
+        0001-create-users.ts
+      sequelize.ts
+      umzug.ts
     middlewares/
-      errorHandler.js
-      notFound.js
+      errorHandler.ts
+      notFound.ts
     models/
-      index.js
-      User.js
+      index.ts
+      User.ts
     routes/
-      health.routes.js
-      index.js
-    app.js
-    server.js
-  sequelize/
-    config/
-      config.js
-    migrations/
-    seeders/
+      health.routes.ts
+      index.ts
+    scripts/
+      migrate.ts
+    app.ts
+    server.ts
   .env.example
-  .sequelizerc
   package.json
+  tsconfig.json
 ```
 
 ## Setup
@@ -43,7 +44,13 @@ npm install
 npm run dev
 ```
 
+## Migrations (optional)
+
+```bash
+cd api
+npm run db:migrate
+```
+
 ## Endpoints
 
 - `GET /health` (includes a quick DB auth check)
-

@@ -1,7 +1,7 @@
-const { app } = require("./app");
-const { validateEnv, env } = require("./config/env");
-const { connectDB } = require("./config/database");
-const { initModels } = require("./models");
+import { app } from "./app";
+import { connectDB } from "./db/sequelize";
+import { validateEnv, env } from "./config/env";
+import { initModels } from "./models";
 
 async function start() {
   validateEnv();
@@ -12,10 +12,10 @@ async function start() {
     console.log(`API listening on port ${env.port} (${env.nodeEnv})`);
   });
 
-  function shutdown(signal) {
+  const shutdown = (signal: string) => {
     console.log(`Received ${signal}, shutting down...`);
     server.close(() => process.exit(0));
-  }
+  };
 
   process.on("SIGINT", () => shutdown("SIGINT"));
   process.on("SIGTERM", () => shutdown("SIGTERM"));
@@ -25,3 +25,4 @@ start().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
