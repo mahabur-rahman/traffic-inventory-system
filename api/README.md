@@ -129,3 +129,17 @@ For now, auth is a simple placeholder header:
 Example protected endpoint:
 
 - `GET /api/v1/me` (requires `X-User-Id`)
+
+## Async error handling (concurrency-safe)
+
+Express 4 does **not** automatically catch rejected Promises from `async` handlers/middlewares. Use the async wrapper everywhere you have `async` code:
+
+- Wrapper: `api/src/utils/asyncHandler.ts:1`
+- Example: `api/src/routes/health.routes.ts:1`
+
+Pattern:
+
+- For any `async (req, res) => { ... }` route handler: `router.get("/x", asyncHandler(handler))`
+- For any `async` middleware in `app.use(...)`: `app.use(asyncHandler(middleware))`
+
+Concurrency note: if you start background work (e.g. `Promise.all(...)`), always `await` it or catch errors; otherwise you’ll get `unhandledRejection` that bypasses Express.

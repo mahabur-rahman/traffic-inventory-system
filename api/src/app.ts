@@ -9,6 +9,7 @@ import { loadUser } from "./middlewares/auth";
 import { errorHandler } from "./middlewares/errorHandler";
 import { notFound } from "./middlewares/notFound";
 import { requestId } from "./middlewares/requestId";
+import { asyncHandler } from "./utils/asyncHandler";
 
 export const app = express();
 
@@ -18,7 +19,7 @@ app.use(cors());
 app.use(compression());
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
-app.use(loadUser);
+app.use(asyncHandler(loadUser));
 
 app.use("/api/v1", routes);
 
