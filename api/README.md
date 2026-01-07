@@ -103,3 +103,17 @@ Error:
 - `429` Too Many Requests
 - `500` Internal Server Error (unexpected)
 - `503` Service Unavailable (downstream dependency)
+
+## Request validation (Zod)
+
+Pattern: define a Zod schema and apply `validate({ body/query/params })` middleware.
+
+- Middleware: `api/src/middlewares/validate.ts:1`
+- Example route: `POST /api/v1/demo/echo` in `api/src/routes/demo.routes.ts:1`
+
+Example request:
+```bash
+curl -X POST http://localhost:4000/api/v1/demo/echo ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"test@example.com\",\"name\":\"Techzu\"}"
+```

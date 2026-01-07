@@ -16,9 +16,11 @@ export function errorHandler(err: any, req: Request, res: Response, next: NextFu
   const message = typeof err?.message === "string" ? err.message : "Internal Server Error";
 
   const details =
-    req.app.get("env") === "development"
-      ? { stack: err?.stack, raw: err instanceof Error ? undefined : err }
-      : undefined;
+    err instanceof ApiError
+      ? err.details
+      : req.app.get("env") === "development"
+        ? { stack: err?.stack, raw: err instanceof Error ? undefined : err }
+        : undefined;
 
   return sendError(res, {
     statusCode,
