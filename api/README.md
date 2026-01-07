@@ -54,3 +54,52 @@ npm run db:migrate
 ## Endpoints
 
 - `GET /health` (includes a quick DB auth check)
+
+## API conventions
+
+### Base URL
+
+- Base path: `/api/v1`
+- Example: `https://your-domain.com/api/v1/health`
+
+### JSON response shape
+
+Success:
+```json
+{
+  "success": true,
+  "data": {},
+  "meta": { "requestId": "..." }
+}
+```
+
+Error:
+```json
+{
+  "success": false,
+  "error": { "code": "NOT_FOUND", "message": "Not Found" },
+  "meta": { "requestId": "..." }
+}
+```
+
+### Error format
+
+- Always return JSON with `success: false`.
+- `error.code` is a stable, UPPER_SNAKE_CASE string for clients.
+- `error.message` is a human-readable message.
+- Optional `error.details` for validation/diagnostics (avoid sensitive data).
+
+### HTTP status codes
+
+- `200` OK (read/update success)
+- `201` Created (create success)
+- `204` No Content (success without body; use sparingly)
+- `400` Bad Request (invalid input / parsing)
+- `401` Unauthorized (missing/invalid auth)
+- `403` Forbidden (auth ok, not allowed)
+- `404` Not Found
+- `409` Conflict (unique constraint, state conflict)
+- `422` Unprocessable Entity (validation failure)
+- `429` Too Many Requests
+- `500` Internal Server Error (unexpected)
+- `503` Service Unavailable (downstream dependency)

@@ -1,13 +1,30 @@
 import type { NextFunction, Request, Response } from "express";
 
+import { ApiError } from "../utils/apiError";
+import { sendError } from "../utils/respond";
+
 export function errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
-  const status = err?.statusCode || 500;
-  const message = err?.message || "Internal Server Error";
+  const statusCode = typeof err?.statusCode === "number" ? err.statusCode : 500;
+  const code =
+    typeof err?.code === "string"
+      ? err.code
+      : err instanceof ApiError
+        ? err.code
+        : statusCode === 404
+          ? "NOT_FOUND"
+          : "INTERNAL_ERROR";
+  const message = typeof err?.message === "string" ? err.message : "Internal Server Error";
 
-  if (req.app.get("env") === "development") {
-    return res.status(status).json({ ok: false, message, stack: err?.stack });
-  }
+  const details =
+    req.app.get("env") === "development"
+      ? { stack: err?.stack, raw: err instanceof Error ? undefined : err }
+      : undefined;
 
-  return res.status(status).json({ ok: false, message });
+  return sendError(res, {
+    statusCode,
+    code,
+    message,
+    details,
+    meta: { requestId: res.locals.requestId }
+  });
 }
-

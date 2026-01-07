@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 
 import { getSequelize } from "../db/sequelize";
+import { sendSuccess } from "../utils/respond";
 
 export async function health(req: Request, res: Response) {
   let db: "up" | "down" | "not_configured" = "down";
@@ -12,11 +13,9 @@ export async function health(req: Request, res: Response) {
     db = err?.code === "DB_NOT_CONFIGURED" ? "not_configured" : "down";
   }
 
-  res.json({
-    ok: true,
-    service: "api",
-    uptime: process.uptime(),
-    db
-  });
+  return sendSuccess(
+    res,
+    { service: "api", uptime: process.uptime(), db },
+    { requestId: res.locals.requestId }
+  );
 }
-
