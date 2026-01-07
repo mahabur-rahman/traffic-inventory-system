@@ -117,3 +117,15 @@ curl -X POST http://localhost:4000/api/v1/demo/echo ^
   -H "Content-Type: application/json" ^
   -d "{\"email\":\"test@example.com\",\"name\":\"Techzu\"}"
 ```
+
+## Auth placeholder (X-User-Id)
+
+For now, auth is a simple placeholder header:
+
+- Header: `X-User-Id: <uuid>`
+- Loader middleware (runs globally): `api/src/middlewares/auth.ts:1`
+- Guard middleware (per-route): `requireUser`
+
+Example protected endpoint:
+
+- `GET /api/v1/me` (requires `X-User-Id`)

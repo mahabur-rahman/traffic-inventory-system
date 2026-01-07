@@ -3,8 +3,21 @@ import { DataTypes } from "sequelize";
 
 import { defineUser } from "./User";
 
-export function initModels(sequelize: Sequelize) {
+export type Models = {
+  User: ReturnType<typeof defineUser>;
+};
+
+let models: Models | null = null;
+
+export function initModels(sequelize: Sequelize): Models {
   const User = defineUser(sequelize, DataTypes);
-  return { User };
+  models = { User };
+  return models;
 }
 
+export function getModels() {
+  if (!models) {
+    throw new Error("Models not initialized");
+  }
+  return models;
+}
