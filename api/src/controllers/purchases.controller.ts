@@ -3,6 +3,8 @@ import type { Request, Response } from "express";
 import { ApiError } from "../utils/apiError";
 import { sendSuccess } from "../utils/respond";
 import { purchaseDrop } from "../services/purchases.service";
+import { emitDropActivityUpdated } from "../realtime/socket";
+import { fetchLatestPurchasersByDropIds } from "../services/drops.service";
 
 export async function postPurchase(req: Request, res: Response) {
   const userId = req.user?.id;
@@ -13,7 +15,18 @@ export async function postPurchase(req: Request, res: Response) {
   const dropId = req.params.dropId;
   const result = await purchaseDrop({ dropId, userId });
 
+  const latest = await fetchLatestPurchasersByDropIds([dropId]);
+  const list = latest.get(dropId) ?? [];
+  emitDropActivityUpdated({
+    dropId,
+    latestPurchasers: list.map((p) => ({
+      userId: p.user_id,
+      username: p.username,
+      qty: p.qty,
+      createdAt: new Date(p.created_at).toISOString()
+    }))
+  });
+
   // Note: drop stock is NOT decremented here; it was decremented at reserve time.
   return sendSuccess(res, result, { requestId: res.locals.requestId }, 201);
 }
-

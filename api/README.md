@@ -122,6 +122,8 @@ DB-level protections (recommended):
 - `POST /api/v1/drops/:dropId/purchase`
 - `GET /api/v1/reservations/me`
 
+Note: the same routes are also mounted under `/api/*` for assessment compatibility (example: `GET /api/drops`).
+
 ## Drops API
 
 ### POST `/api/v1/drops`
@@ -291,7 +293,7 @@ Manual trigger (dev only):
 
 ### Base URL
 
-- Base path: `/api/v1`
+- Base path: `/api` (alias) or `/api/v1`
 - Example: `https://your-domain.com/api/v1/health`
 
 ### JSON response shape
@@ -388,3 +390,12 @@ Best practices:
 - Clients may send `X-Request-Id`; server will echo it back, otherwise it generates one.
 - Always include `meta.requestId` in responses for debugging.
 - Avoid logging secrets; logger redacts common sensitive fields (see `api/src/logger.ts:1`).
+
+## Real-time updates (Socket.IO)
+
+Socket.IO server starts with the API and broadcasts stock/activity updates to all connected clients.
+
+- Server setup: `api/src/realtime/socket.ts:1` and `api/src/server.ts:1`
+- Emits:
+  - `drop:stock_updated` → `{ dropId, availableStock }` (on reserve + expiry recovery)
+  - `drop:activity_updated` → `{ dropId, latestPurchasers: [{ userId, username, qty, createdAt }] }` (on purchase)

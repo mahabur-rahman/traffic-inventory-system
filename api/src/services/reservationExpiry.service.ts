@@ -4,7 +4,7 @@ import { getSequelize } from "../db/sequelize";
 
 export type ExpireResult = {
   expiredCount: number;
-  updatedDropIds: string[];
+  updatedDrops: Array<{ dropId: string; availableStock: number }>;
 };
 
 export async function expireReservationsOnce(params?: { limit?: number }) {
@@ -40,21 +40,25 @@ export async function expireReservationsOnce(params?: { limit?: number }) {
               updated_at = NOW()
           FROM agg
           WHERE d.id = agg.drop_id
-          RETURNING d.id
+          RETURNING d.id, d.available_stock
         )
         SELECT
           (SELECT COUNT(*)::int FROM expired) AS expired_count,
-          (SELECT COALESCE(array_agg(id), '{}') FROM upd) AS updated_drop_ids
+          (SELECT COALESCE(json_agg(json_build_object('dropId', id, 'availableStock', available_stock)), '[]'::json) FROM upd) AS updated_drops
       `,
       {
         transaction,
         replacements: { limit },
         type: QueryTypes.SELECT
       }
-    )) as Array<{ expired_count: number; updated_drop_ids: string[] }>;
+    )) as Array<{ expired_count: number; updated_drops: unknown }>;
 
-    const row = expired[0] || { expired_count: 0, updated_drop_ids: [] };
-    return { expiredCount: row.expired_count, updatedDropIds: row.updated_drop_ids } satisfies ExpireResult;
+    const row = expired[0] || { expired_count: 0, updated_drops: [] };
+    const updatedDrops = Array.isArray(row.updated_drops) ? row.updated_drops : [];
+
+    return {
+      expiredCount: row.expired_count,
+      updatedDrops: updatedDrops as Array<{ dropId: string; availableStock: number }>
+    } satisfies ExpireResult;
   });
 }
-

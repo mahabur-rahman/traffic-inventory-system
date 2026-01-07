@@ -23,6 +23,8 @@ app.use(compression());
 app.use(express.json({ limit: "1mb" }) as unknown as RequestHandler);
 app.use(asyncHandler(loadUser));
 
+// Assessment-compatible base path
+app.use("/api", routes);
 app.use("/api/v1", routes);
 app.use("/api/internal", internalRoutes);
 

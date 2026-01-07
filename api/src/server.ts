@@ -3,6 +3,8 @@ import { connectDB } from "./db/sequelize";
 import { validateEnv, env } from "./config/env";
 import { initModels } from "./models";
 import { startReservationExpiryWorker } from "./workers/reservationExpiry.worker";
+import { initSocket } from "./realtime/socket";
+import http from "node:http";
 
 async function start() {
   validateEnv();
@@ -11,7 +13,10 @@ async function start() {
 
   const stopExpiryWorker = startReservationExpiryWorker();
 
-  const server = app.listen(env.port, () => {
+  const httpServer = http.createServer(app);
+  initSocket(httpServer);
+
+  const server = httpServer.listen(env.port, () => {
     console.log(`API listening on port ${env.port} (${env.nodeEnv})`);
   });
 

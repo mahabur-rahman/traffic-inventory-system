@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { ApiError } from "../utils/apiError";
 import { sendSuccess } from "../utils/respond";
 import { listMyActiveReservations, reserveOne } from "../services/reservations.service";
+import { emitDropStockUpdated } from "../realtime/socket";
 
 export async function postReserve(req: Request, res: Response) {
   const userId = req.user?.id;
@@ -13,6 +14,7 @@ export async function postReserve(req: Request, res: Response) {
   const dropId = req.params.dropId;
   const result = await reserveOne({ dropId, userId, ttlSeconds: 60 });
 
+  emitDropStockUpdated({ dropId: result.drop.id, availableStock: result.drop.available_stock });
   return sendSuccess(res, result, { requestId: res.locals.requestId }, 201);
 }
 
@@ -41,4 +43,3 @@ export async function getMyReservations(req: Request, res: Response) {
 
   return sendSuccess(res, { items: data }, { requestId: res.locals.requestId });
 }
-
