@@ -51,3 +51,47 @@ export function removeReservationById(queryClient: QueryClient, reservationId: s
   });
 }
 
+export function applyPurchaseCompleted(
+  queryClient: QueryClient,
+  payload: { dropId: string; username: string | null; purchasedAt: string }
+) {
+  if (!payload.username) return;
+
+  queryClient.setQueryData<DropsListResponse>(dropsKey, (prev) => {
+    if (!prev) return prev;
+
+    const nextItems = prev.items.map((d) => {
+      if (d.id !== payload.dropId) return d;
+
+      const existing = d.activity_feed?.latest_purchasers ?? [];
+      const next = [
+        {
+          user_id: "unknown",
+          username: payload.username ?? "unknown",
+          qty: 1,
+          created_at: payload.purchasedAt
+        },
+        ...existing
+      ];
+
+      const deduped: typeof next = [];
+      const seen = new Set<string>();
+      for (const item of next) {
+        const key = `${item.username}-${item.created_at}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        deduped.push(item);
+        if (deduped.length >= 3) break;
+      }
+
+      return {
+        ...d,
+        activity_feed: {
+          latest_purchasers: deduped
+        }
+      };
+    });
+
+    return { ...prev, items: nextItems };
+  });
+}

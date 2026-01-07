@@ -13,7 +13,7 @@ import {
   usePurchaseDropMutation,
   useReserveDropMutation
 } from "../hooks/queries";
-import { applyActivityUpdated, applyStockUpdated, removeReservationById } from "../hooks/cacheUpdates";
+import { applyActivityUpdated, applyPurchaseCompleted, applyStockUpdated, removeReservationById } from "../hooks/cacheUpdates";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { recordEvent } from "../store/socketSlice";
 import { StatusBar } from "../components/StatusBar";
@@ -155,8 +155,8 @@ export function Dashboard() {
 
     const onPurchaseCompleted = (_payload: { dropId: string; username: string | null; purchasedAt: string }) => {
       dispatch(recordEvent());
-      // Purchaser list is updated via ACTIVITY_UPDATED; this marks activity without refetch.
-      void queryClient.invalidateQueries({ queryKey: dropsKey });
+      // Prefer cache update; ACTIVITY_UPDATED will still overwrite with exact top-3 list.
+      applyPurchaseCompleted(queryClient, _payload);
     };
 
     socket.on("STOCK_UPDATED", onStock);
