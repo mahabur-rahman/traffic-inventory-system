@@ -220,3 +220,77 @@ Events (primary contract):
 Emitting rule:
 
 - Emit only after DB commit (controllers emit after service transactions return; worker emits after expiry transaction completes).
+
+Consistency note (DB is source of truth):
+
+- Clients render stock from API (`GET /api/drops`) and treat Socket events as *real-time hints*.
+- Every socket payload is derived from committed DB writes (emit-after-commit), so clients can safely update UI immediately; if a client reconnects/misses events it can refetch `/api/drops` to resync.
+
+## Indexes (high-traffic rationale)
+
+Recommended/used patterns:
+
+- Active drops query: index `(status, starts_at, ends_at)` or at least `status`, `starts_at`, `ends_at`
+- Stock updates: primary key on `drops.id` + keep updates as single-row `UPDATE ... WHERE id=? AND available_stock>0`
+- Expiry scan: partial index on `reservations(expires_at)` where `status='ACTIVE'` (plus `(status, expires_at)` for batch scans)
+- Latest purchasers: index on `purchases(drop_id, createdAt)` and filter on `status='paid'` to support the window-function ranking
+
+## Curl examples
+
+Create a user (dev helper) and copy the returned `id`:
+
+```bash
+curl -X POST http://localhost:4000/api/internal/users ^
+  -H "Content-Type: application/json" ^
+  -d "{\"username\":\"alice\"}"
+```
+
+Create a drop (requires `X-User-Id`):
+
+```bash
+curl -X POST http://localhost:4000/api/drops ^
+  -H "Content-Type: application/json" ^
+  -H "X-User-Id: <USER_UUID>" ^
+  -d "{\"name\":\"Air Jordan 1\",\"price\":5000,\"total_stock\":3,\"starts_at\":null,\"ends_at\":null}"
+```
+
+List active drops:
+
+```bash
+curl http://localhost:4000/api/drops
+```
+
+Reserve (atomic, no oversell):
+
+```bash
+curl -X POST http://localhost:4000/api/drops/<DROP_UUID>/reserve ^
+  -H "X-User-Id: <USER_UUID>"
+```
+
+Reservation race test (bash): run many reserves at once and observe only up to stock succeeds, rest `409`:
+
+```bash
+for i in {1..20}; do
+  curl -s -o /dev/null -w "%{http_code}\n" -X POST "http://localhost:4000/api/drops/<DROP_UUID>/reserve" -H "X-User-Id: <USER_UUID>" &
+done
+wait
+```
+
+View my active reservations:
+
+```bash
+curl http://localhost:4000/api/reservations/me -H "X-User-Id: <USER_UUID>"
+```
+
+Purchase (only if reserved):
+
+```bash
+curl -X POST http://localhost:4000/api/drops/<DROP_UUID>/purchase ^
+  -H "X-User-Id: <USER_UUID>"
+```
+
+Trigger expiry processing (dev only):
+
+```bash
+curl -X POST http://localhost:4000/api/internal/expire-now
+```
