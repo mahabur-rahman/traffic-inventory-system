@@ -1,6 +1,7 @@
 import type { Drop } from "../types/drop";
 import { notifyError, notifySuccess } from "../lib/notify";
 import type { MyReservation } from "../types/reservation";
+import { formatRelativeTime } from "../lib/time";
 
 export type DropCardProps = {
   drop: Drop;
@@ -75,7 +76,7 @@ export function DropCard(props: DropCardProps) {
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         <button
-          className="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-200 disabled:opacity-60"
+          className="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-200 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
           style={!hasActiveReservation ? { gridColumn: "1 / -1" } : undefined}
           disabled={props.busy || !canReserve}
           onClick={async () => {
@@ -92,7 +93,7 @@ export function DropCard(props: DropCardProps) {
 
         {hasActiveReservation && (
           <button
-            className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-semibold text-zinc-100 hover:bg-zinc-900 disabled:opacity-60"
+            className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-semibold text-zinc-100 hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
             disabled={props.busy}
             onClick={async () => {
               try {
@@ -118,7 +119,7 @@ export function DropCard(props: DropCardProps) {
           {latest.map((p) => (
             <div key={`${d.id}-${p.user_id}-${p.created_at}`} className="flex items-center justify-between">
               <span className="truncate text-zinc-200">{p.username}</span>
-              <span className="shrink-0 text-zinc-500">{new Date(p.created_at).toLocaleTimeString()}</span>
+              <span className="shrink-0 text-zinc-500">{formatRelativeTime(p.created_at, now)}</span>
             </div>
           ))}
           {latest.length === 0 && <div className="text-zinc-500">No purchases yet</div>}

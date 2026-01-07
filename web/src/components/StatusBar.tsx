@@ -1,5 +1,6 @@
 import { API_ORIGIN } from "../lib/env";
 import type { SocketConnectionState } from "../types/socket";
+import { LiveBadge } from "./LiveBadge";
 
 export type StatusBarProps = {
   lastUpdatedAt: Date | null;
@@ -16,13 +17,6 @@ export function StatusBar(props: StatusBarProps) {
         ? "bg-emerald-400"
         : "bg-red-400";
 
-  const socketDot =
-    props.socketState === "connected"
-      ? "bg-emerald-400"
-      : props.socketState === "reconnecting"
-        ? "bg-yellow-400"
-        : "bg-red-400";
-
   return (
     <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-950/50 px-4 py-3 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -33,10 +27,7 @@ export function StatusBar(props: StatusBarProps) {
         </div>
 
         <div className="flex items-center gap-3 text-xs text-zinc-400">
-          <span className="inline-flex items-center gap-2">
-            <span className={`h-2 w-2 rounded-full ${socketDot}`} />
-            <span>Live</span>
-          </span>
+          <LiveBadge state={props.socketState ?? "disconnected"} />
           <span className="text-zinc-600">•</span>
           <span>{props.loading ? "Syncing..." : "Idle"}</span>
           <span className="text-zinc-600">•</span>

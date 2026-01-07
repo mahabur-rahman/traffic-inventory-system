@@ -2,7 +2,7 @@ import toast from "react-hot-toast";
 
 import { useAuth } from "./hooks/useAuth";
 import { LoginCard } from "./components/LoginCard";
-import { DropsList } from "./components/DropsList";
+import { Dashboard } from "./pages/Dashboard";
 
 function App() {
   const { auth, isAuthed, logout } = useAuth();
@@ -48,7 +48,9 @@ function App() {
               <span className="font-mono">X-User-Id</span> (and{" "}
               <span className="font-mono">X-User-Name</span>).
             </div>
-            <DropsList />
+            <div className="mt-6">
+              <Dashboard />
+            </div>
           </>
         )}
       </main>

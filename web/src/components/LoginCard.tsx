@@ -33,7 +33,7 @@ export function LoginCard() {
         <label className="block text-sm text-zinc-300">
           Username
           <input
-            className="mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-600 focus:outline-none"
+            className="mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-600 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
             placeholder="alice"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -42,7 +42,7 @@ export function LoginCard() {
         </label>
 
         <button
-          className="w-full rounded-xl bg-white px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-200 disabled:opacity-60"
+          className="w-full rounded-xl bg-white px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-200 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
           disabled={loading}
           type="submit"
         >

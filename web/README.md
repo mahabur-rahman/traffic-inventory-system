@@ -36,6 +36,34 @@ Main
           - latest 3 purchasers (username + time)
 ```
 
+## UI checklist (requirements)
+
+- Real-time stock updates: Socket.IO `STOCK_UPDATED` updates card count + highlight
+- Live socket indicator: green/amber/red badge in status bar
+- Loading states: skeleton cards on first load + per-button loading labels
+- Concurrency feedback: toast rules map `OUT_OF_STOCK/CONFLICT/RESERVATION_EXPIRED` to warning/error/info
+- Visible stock count: large number on each card
+
+## Component structure plan
+
+```
+pages/
+  Dashboard.tsx
+components/
+  DropCard.tsx
+  DropCardSkeleton.tsx
+  ErrorBanner.tsx
+  LiveBadge.tsx
+  StatusBar.tsx
+  ToastSetup.tsx
+lib/
+  api.ts
+  auth.ts
+  errors.ts
+  notify.ts
+  time.ts
+```
+
 ### Suggested folder structure
 
 ```
