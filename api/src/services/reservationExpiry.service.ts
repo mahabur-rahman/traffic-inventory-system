@@ -1,6 +1,7 @@
 import { QueryTypes } from "sequelize";
 
 import { getSequelize } from "../db/sequelize";
+import { logger } from "../logger";
 
 export type ExpireResult = {
   expiredCount: number;
@@ -8,9 +9,36 @@ export type ExpireResult = {
   expiredReservations: Array<{ reservationId: string; dropId: string }>;
 };
 
+let schemaReadyCache: boolean | null = null;
+let warnedMissingSchema = false;
+
+async function isSchemaReady() {
+  if (schemaReadyCache === true) return true;
+
+  const sequelize = getSequelize();
+  const rows = (await sequelize.query(
+    `SELECT to_regclass('public.reservations') AS reservations, to_regclass('public.drops') AS drops`,
+    { type: QueryTypes.SELECT }
+  )) as Array<{ reservations: string | null; drops: string | null }>;
+
+  const ready = Boolean(rows[0]?.reservations) && Boolean(rows[0]?.drops);
+  if (ready) schemaReadyCache = true;
+
+  return ready;
+}
+
 export async function expireReservationsOnce(params?: { limit?: number }) {
   const sequelize = getSequelize();
   const limit = params?.limit ?? 500;
+
+  const ready = await isSchemaReady();
+  if (!ready) {
+    if (!warnedMissingSchema) {
+      warnedMissingSchema = true;
+      logger.warn("DB schema not ready (missing tables). Run `npm run db:migrate`.");
+    }
+    return { expiredCount: 0, updatedDrops: [], expiredReservations: [] };
+  }
 
   return sequelize.transaction(async (transaction) => {
     const expired = (await sequelize.query(
