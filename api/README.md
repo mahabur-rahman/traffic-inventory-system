@@ -118,6 +118,8 @@ DB-level protections (recommended):
 - `GET /api/v1/health` (includes a quick DB auth check)
 - `POST /api/v1/drops`
 - `GET /api/v1/drops`
+- `POST /api/v1/drops/:dropId/reserve`
+- `GET /api/v1/reservations/me`
 
 ## Drops API
 
@@ -187,6 +189,53 @@ Efficient “latest 3 purchasers per drop” query:
 - Service: `api/src/services/drops.service.ts:1`
 - SQL (window function via `ROW_NUMBER()`):
   - `WITH ranked AS ( ... ROW_NUMBER() OVER (PARTITION BY p.drop_id ORDER BY p."createdAt" DESC) ... ) SELECT ... WHERE rn <= 3`
+
+## Reservations API (atomic reserve / oversell prevention)
+
+Policy: **one active reservation per user per drop**, enforced by a partial unique index:
+
+- Migration: `api/src/db/migrations/0007-add-reservations-active-unique.ts:1`
+
+### POST `/api/v1/drops/:dropId/reserve`
+
+Auth required (`X-User-Id`). Reserves **1 unit**:
+
+- Atomic decrement (Postgres): `UPDATE drops SET available_stock = available_stock - 1 WHERE id = ? AND available_stock > 0 RETURNING ...`
+- Transaction: decrement stock then insert reservation with `expires_at = now()+60s`
+
+Implementation:
+
+- Route: `api/src/routes/reservations.routes.ts:1`
+- Service (SQL + transaction): `api/src/services/reservations.service.ts:1`
+
+Success `201`:
+
+```json
+{
+  "success": true,
+  "data": {
+    "reservation": { "id": "uuid", "drop_id": "uuid", "user_id": "uuid", "status": "active", "expires_at": "iso", "created_at": "iso" },
+    "drop": { "id": "uuid", "available_stock": 9 }
+  },
+  "meta": { "requestId": "..." }
+}
+```
+
+Errors:
+
+- `401 AUTH_REQUIRED`: missing `X-User-Id`
+- `404 DROP_NOT_FOUND`: drop id not found
+- `409 OUT_OF_STOCK`: no stock available
+- `409 DROP_NOT_ACTIVE`: drop not live / outside time window
+- `409 ALREADY_RESERVED`: user already has an active reservation for this drop
+
+Idempotency suggestion (optional):
+
+- Support `Idempotency-Key` header for retries. Store it with the reservation and return the same reservation if the same key is retried (prevents double-decrement on client retry).
+
+### GET `/api/v1/reservations/me`
+
+Auth required. Lists the user’s active (non-expired) reservations (for testing).
 
 ## API conventions
 
