@@ -64,9 +64,20 @@ export async function apiGet<T>(path: string): Promise<T> {
   }
 }
 
-export async function apiPost<T>(path: string): Promise<T> {
+export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   try {
-    const res = await api.post<ApiEnvelope<T>>(path);
+    const res = await api.post<ApiEnvelope<T>>(path, body);
+    const envelope = res.data as ApiEnvelope<T>;
+    if (envelope.success) return envelope.data;
+    throw toApiError({ response: { status: 400, data: envelope } } as any);
+  } catch (err) {
+    throw toApiError(err);
+  }
+}
+
+export async function apiDelete<T>(path: string): Promise<T> {
+  try {
+    const res = await api.delete<ApiEnvelope<T>>(path);
     const envelope = res.data as ApiEnvelope<T>;
     if (envelope.success) return envelope.data;
     throw toApiError({ response: { status: 400, data: envelope } } as any);

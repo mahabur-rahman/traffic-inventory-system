@@ -186,10 +186,18 @@ export function Dashboard() {
 
   useEffect(() => {
     if (socketStatus === "connected") return;
+    const delay = window.setTimeout(() => {
+      void refresh();
+    }, 5_000);
+
     const interval = window.setInterval(() => {
       void refresh();
     }, 12_000);
-    return () => window.clearInterval(interval);
+
+    return () => {
+      window.clearTimeout(delay);
+      window.clearInterval(interval);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socketStatus]);
 
