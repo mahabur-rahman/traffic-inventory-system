@@ -14,11 +14,13 @@ export function defineReservation(
       },
       userId: {
         type: dataTypes.UUID,
-        allowNull: false
+        allowNull: false,
+        field: "user_id"
       },
       dropId: {
         type: dataTypes.UUID,
-        allowNull: false
+        allowNull: false,
+        field: "drop_id"
       },
       status: {
         type: dataTypes.STRING(32),
@@ -27,15 +29,14 @@ export function defineReservation(
       },
       expiresAt: {
         type: dataTypes.DATE,
-        allowNull: true
+        allowNull: true,
+        field: "expires_at"
       }
     },
     {
       tableName: "reservations",
-      underscored: true,
-      timestamps: true,
-      createdAt: "createdAt",
-      updatedAt: "updatedAt"
+      underscored: false,
+      timestamps: true
     }
   );
 }

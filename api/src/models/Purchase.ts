@@ -14,16 +14,19 @@ export function definePurchase(
       },
       userId: {
         type: dataTypes.UUID,
-        allowNull: false
+        allowNull: false,
+        field: "user_id"
       },
       dropId: {
         type: dataTypes.UUID,
-        allowNull: false
+        allowNull: false,
+        field: "drop_id"
       },
       reservationId: {
         type: dataTypes.UUID,
         allowNull: true,
-        unique: true
+        unique: true,
+        field: "reservation_id"
       },
       qty: {
         type: dataTypes.INTEGER,
@@ -35,7 +38,8 @@ export function definePurchase(
         type: dataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
-        validate: { min: 0 }
+        validate: { min: 0 },
+        field: "amount_cents"
       },
       currency: {
         type: dataTypes.STRING(3),
@@ -54,15 +58,14 @@ export function definePurchase(
       },
       providerRef: {
         type: dataTypes.STRING(255),
-        allowNull: true
+        allowNull: true,
+        field: "provider_ref"
       }
     },
     {
       tableName: "purchases",
-      underscored: true,
-      timestamps: true,
-      createdAt: "createdAt",
-      updatedAt: "updatedAt"
+      underscored: false,
+      timestamps: true
     }
   );
 }
