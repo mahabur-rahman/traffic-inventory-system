@@ -76,6 +76,8 @@ Implemented via migrations:
 - `api/src/db/migrations/0001-create-users.ts:1`
 - `api/src/db/migrations/0002-create-drops-reservations-purchases.ts:1`
 - `api/src/db/migrations/0004-update-reservations-expiry-indexes.ts:1`
+- `api/src/db/migrations/0005-update-purchases-qty-createdat-indexes.ts:1`
+- `api/src/db/migrations/0006-add-status-check-constraints.ts:1`
 
 ### Tables
 
@@ -100,6 +102,16 @@ Models + associations:
 Drops fields (core):
 
 - `name`, `price`, `total_stock`, `available_stock`, `starts_at`, `ends_at`, `status`
+
+Purchases fields (core):
+
+- `drop_id`, `user_id`, `qty` (default 1), `createdAt`
+
+DB-level protections (recommended):
+
+- `CHECK` constraints: non-negative stock (`available_stock >= 0`), `available_stock <= total_stock`, `qty > 0`, status allowed values
+- `FOREIGN KEY` constraints: keep references valid (`drop_id`, `user_id`, etc.)
+- Concurrency-safe stock decrement: do stock updates as a single SQL statement inside a transaction, e.g. `UPDATE drops SET available_stock = available_stock - $1 WHERE id = $2 AND available_stock >= $1`
 
 ## Endpoints
 

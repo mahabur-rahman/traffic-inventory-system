@@ -25,7 +25,7 @@ export function definePurchase(
         allowNull: true,
         unique: true
       },
-      quantity: {
+      qty: {
         type: dataTypes.INTEGER,
         allowNull: false,
         defaultValue: 1,
@@ -60,8 +60,9 @@ export function definePurchase(
     {
       tableName: "purchases",
       underscored: true,
-      timestamps: true
+      timestamps: true,
+      createdAt: "createdAt",
+      updatedAt: "updatedAt"
     }
   );
 }
-
