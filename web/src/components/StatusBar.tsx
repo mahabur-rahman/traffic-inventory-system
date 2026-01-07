@@ -10,15 +10,10 @@ export type StatusBarProps = {
 };
 
 export function StatusBar(props: StatusBarProps) {
-  const dotClass =
-    props.ok === null
-      ? "bg-zinc-500"
-      : props.ok
-        ? "bg-emerald-400"
-        : "bg-red-400";
+  const dotClass = props.ok === null ? "bg-zinc-500" : props.ok ? "bg-emerald-400" : "bg-red-400";
 
   return (
-    <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-950/50 px-4 py-3 text-sm">
+    <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-950/50 px-4 py-3 text-sm shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-zinc-300">
           <span className={`h-2 w-2 rounded-full ${dotClass}`} />
@@ -28,15 +23,13 @@ export function StatusBar(props: StatusBarProps) {
 
         <div className="flex items-center gap-3 text-xs text-zinc-400">
           <LiveBadge state={props.socketState ?? "disconnected"} />
-          <span className="text-zinc-600">•</span>
+          <span className="text-zinc-600">|</span>
           <span>{props.loading ? "Syncing..." : "Idle"}</span>
-          <span className="text-zinc-600">•</span>
-          <span>
-            Last updated:{" "}
-            {props.lastUpdatedAt ? props.lastUpdatedAt.toLocaleTimeString() : "—"}
-          </span>
+          <span className="text-zinc-600">|</span>
+          <span>Last updated: {props.lastUpdatedAt ? props.lastUpdatedAt.toLocaleTimeString() : "-"}</span>
         </div>
       </div>
     </div>
   );
 }
+

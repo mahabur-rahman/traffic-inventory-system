@@ -1,6 +1,7 @@
 import type { Drop } from "../types/drop";
 import type { MyReservation } from "../types/reservation";
 import { formatRelativeTime } from "../lib/time";
+import { Spinner } from "./Spinner";
 
 export type DropCardProps = {
   drop: Drop;
@@ -36,11 +37,18 @@ export function DropCard(props: DropCardProps) {
   const canReserve =
     d.available_stock > 0 && (d.status === "live" || d.status === "scheduled") && !hasActiveReservation;
 
+  const reserveLabel = (() => {
+    if (props.busy) return "Reserving";
+    if (hasActiveReservation) return "Reserved";
+    if (d.available_stock <= 0) return "Sold out";
+    return "Reserve";
+  })();
+
   return (
     <div
       className={[
-        "rounded-2xl border bg-zinc-950/50 p-4 shadow-sm transition",
-        props.stockFlash ? "border-emerald-500/60 shadow-emerald-500/10" : "border-zinc-800"
+        "rounded-2xl border bg-zinc-950/50 p-4 shadow-sm transition-colors hover:bg-zinc-950/70",
+        props.stockFlash ? "border-emerald-500/60 shadow-emerald-500/10" : "border-zinc-800 hover:border-zinc-700"
       ].join(" ")}
     >
       <div className="flex items-start justify-between gap-3">
@@ -75,7 +83,7 @@ export function DropCard(props: DropCardProps) {
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         <button
-          className="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-200 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-zinc-900 shadow-sm hover:bg-zinc-200 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
           style={!hasActiveReservation ? { gridColumn: "1 / -1" } : undefined}
           disabled={props.busy || !canReserve}
           onClick={async () => {
@@ -84,12 +92,13 @@ export function DropCard(props: DropCardProps) {
             } catch {}
           }}
         >
-          {props.busy ? "Reserving..." : hasActiveReservation ? "Reserved" : "Reserve"}
+          {props.busy ? <Spinner className="text-zinc-700" /> : null}
+          <span>{reserveLabel}</span>
         </button>
 
         {hasActiveReservation && (
           <button
-            className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-semibold text-zinc-100 hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-semibold text-zinc-100 shadow-sm hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
             disabled={props.busy}
             onClick={async () => {
               try {
@@ -97,7 +106,8 @@ export function DropCard(props: DropCardProps) {
               } catch {}
             }}
           >
-            {props.busy ? "Purchasing..." : "Purchase"}
+            {props.busy ? <Spinner className="text-zinc-200" /> : null}
+            <span>{props.busy ? "Purchasing" : "Purchase"}</span>
           </button>
         )}
       </div>

@@ -1,6 +1,6 @@
 export function ErrorBanner(props: { message: string; onRetry: () => void; retrying?: boolean }) {
   return (
-    <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3">
+    <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm text-red-100">
           <div className="font-semibold">API error</div>
@@ -17,4 +17,3 @@ export function ErrorBanner(props: { message: string; onRetry: () => void; retry
     </div>
   );
 }
-
