@@ -237,6 +237,27 @@ Idempotency suggestion (optional):
 
 Auth required. Lists the user’s active (non-expired) reservations (for testing).
 
+## Reservation expiration & stock recovery
+
+Strategy: **background worker polling every ~2 seconds**.
+
+Why:
+
+- Works without external infra (no cron/queue required for MVP)
+- Makes oversell prevention + recovery deterministic at the DB level
+- Safe across restarts: run one cleanup cycle on boot, then keep polling
+
+Implementation:
+
+- Processor (concurrency-safe): `api/src/services/reservationExpiry.service.ts:1`
+  - Uses `UPDATE ... WHERE status='active' AND expires_at <= now() ... RETURNING` with `FOR UPDATE SKIP LOCKED`
+  - In the same transaction, increments `drops.available_stock` for affected drops
+- Worker startup on boot: `api/src/workers/reservationExpiry.worker.ts:1` and wired in `api/src/server.ts:1`
+
+Manual trigger (dev only):
+
+- `POST /api/internal/expire-now` (returns `{ expiredCount, updatedDropIds }`)
+
 ## API conventions
 
 ### Base URL

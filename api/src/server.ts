@@ -2,11 +2,14 @@ import { app } from "./app";
 import { connectDB } from "./db/sequelize";
 import { validateEnv, env } from "./config/env";
 import { initModels } from "./models";
+import { startReservationExpiryWorker } from "./workers/reservationExpiry.worker";
 
 async function start() {
   validateEnv();
   const sequelize = await connectDB();
   initModels(sequelize);
+
+  const stopExpiryWorker = startReservationExpiryWorker();
 
   const server = app.listen(env.port, () => {
     console.log(`API listening on port ${env.port} (${env.nodeEnv})`);
@@ -14,6 +17,7 @@ async function start() {
 
   const shutdown = (signal: string) => {
     console.log(`Received ${signal}, shutting down...`);
+    stopExpiryWorker();
     server.close(() => process.exit(0));
   };
 
@@ -25,4 +29,3 @@ start().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-

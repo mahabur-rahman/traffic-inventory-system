@@ -11,6 +11,7 @@ import { httpLogger } from "./middlewares/httpLogger";
 import { notFound } from "./middlewares/notFound";
 import { requestContext } from "./middlewares/requestContext";
 import { asyncHandler } from "./utils/asyncHandler";
+import internalRoutes from "./routes/internal.routes";
 
 export const app = express();
 
@@ -23,6 +24,7 @@ app.use(express.json({ limit: "1mb" }) as unknown as RequestHandler);
 app.use(asyncHandler(loadUser));
 
 app.use("/api/v1", routes);
+app.use("/api/internal", internalRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
