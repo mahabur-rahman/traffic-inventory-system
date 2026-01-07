@@ -96,6 +96,10 @@ Models + associations:
 
 - `api/src/models/index.ts:1`
 
+Drops fields (core):
+
+- `name`, `price`, `total_stock`, `available_stock`, `starts_at`, `ends_at`, `status`
+
 ## Endpoints
 
 - `GET /api/v1/health` (includes a quick DB auth check)

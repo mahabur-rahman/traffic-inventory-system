@@ -12,7 +12,7 @@ export function defineDrop(
         defaultValue: dataTypes.UUIDV4,
         primaryKey: true
       },
-      title: {
+      name: {
         type: dataTypes.STRING(200),
         allowNull: false
       },
@@ -38,12 +38,17 @@ export function defineDrop(
         allowNull: false,
         defaultValue: "USD"
       },
-      priceCents: {
+      price: {
         type: dataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0
       },
-      totalQuantity: {
+      totalStock: {
+        type: dataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+      },
+      availableStock: {
         type: dataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0
@@ -60,4 +65,3 @@ export function defineDrop(
     }
   );
 }
-
