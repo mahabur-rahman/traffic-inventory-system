@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-import type { DropsListResponse } from "../types/drop";
 import type { MyReservation } from "../types/reservation";
 import { notifyInfo } from "../lib/notify";
 import { normalizeError } from "../lib/errors";
@@ -14,6 +13,9 @@ import {
   usePurchaseDropMutation,
   useReserveDropMutation
 } from "../hooks/queries";
+import { applyActivityUpdated, applyStockUpdated, removeReservationById } from "../hooks/cacheUpdates";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { recordEvent } from "../store/socketSlice";
 import { StatusBar } from "../components/StatusBar";
 import { DropCard } from "../components/DropCard";
 import { DropCardSkeleton } from "../components/DropCardSkeleton";
@@ -27,7 +29,9 @@ export function Dashboard() {
   const flashTimers = useRef<Record<string, number>>({});
   const expiredNotified = useRef<Record<string, boolean>>({});
 
-  const { socket, connectionState } = useSocket();
+  const dispatch = useAppDispatch();
+  const socketStatus = useAppSelector((s) => s.socket.status);
+  const { socket } = useSocket();
 
   const queryClient = useQueryClient();
   const dropsQuery = useDropsQuery();
@@ -118,17 +122,8 @@ export function Dashboard() {
     if (!socket) return;
 
     const onStock = (payload: { dropId: string; availableStock: number }) => {
-      queryClient.setQueryData<DropsListResponse>(dropsKey, (prev) => {
-        if (!prev) return prev;
-        let changed = false;
-        const nextItems = prev.items.map((d) => {
-          if (d.id !== payload.dropId) return d;
-          if (d.available_stock === payload.availableStock) return d;
-          changed = true;
-          return { ...d, available_stock: payload.availableStock };
-        });
-        return changed ? { ...prev, items: nextItems } : prev;
-      });
+      dispatch(recordEvent());
+      applyStockUpdated(queryClient, payload);
       flashDrop(payload.dropId);
     };
 
@@ -136,24 +131,8 @@ export function Dashboard() {
       dropId: string;
       latestPurchasers: Array<{ userId: string; username: string; qty: number; createdAt: string }>;
     }) => {
-      queryClient.setQueryData<DropsListResponse>(dropsKey, (prev) => {
-        if (!prev) return prev;
-        const nextItems = prev.items.map((d) => {
-          if (d.id !== payload.dropId) return d;
-          return {
-            ...d,
-            activity_feed: {
-              latest_purchasers: payload.latestPurchasers.map((p) => ({
-                user_id: p.userId,
-                username: p.username,
-                qty: p.qty,
-                created_at: p.createdAt
-              }))
-            }
-          };
-        });
-        return { ...prev, items: nextItems };
-      });
+      dispatch(recordEvent());
+      applyActivityUpdated(queryClient, payload);
     };
 
     const onExpired = (payload: { dropId: string; reservationId: string }) => {
@@ -161,10 +140,8 @@ export function Dashboard() {
       const items = Array.isArray(prev?.items) ? prev.items : [];
       const isMine = items.some((r: any) => r.id === payload.reservationId);
 
-      queryClient.setQueryData(myReservationsKey, (p: any) => {
-        const list = Array.isArray(p?.items) ? p.items : [];
-        return { items: list.filter((r: any) => r.id !== payload.reservationId) };
-      });
+      dispatch(recordEvent());
+      removeReservationById(queryClient, payload.reservationId);
 
       if (isMine) {
         notifyInfo("Reservation expired");
@@ -172,10 +149,12 @@ export function Dashboard() {
     };
 
     const onDropCreated = (_payload: { drop: unknown }) => {
+      dispatch(recordEvent());
       void refresh();
     };
 
     const onPurchaseCompleted = (_payload: { dropId: string; username: string | null; purchasedAt: string }) => {
+      dispatch(recordEvent());
       // Purchaser list is updated via ACTIVITY_UPDATED; this marks activity without refetch.
       void queryClient.invalidateQueries({ queryKey: dropsKey });
     };
@@ -197,13 +176,13 @@ export function Dashboard() {
   }, [socket]);
 
   useEffect(() => {
-    if (connectionState === "connected") return;
+    if (socketStatus === "connected") return;
     const interval = window.setInterval(() => {
       void refresh();
     }, 12_000);
     return () => window.clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectionState]);
+  }, [socketStatus]);
 
   const showSkeletons = dropsQuery.isLoading && items.length === 0;
 
@@ -220,7 +199,7 @@ export function Dashboard() {
         </button>
       </div>
 
-      <StatusBar lastUpdatedAt={lastUpdatedAt} loading={loading} ok={ok} socketState={connectionState} />
+      <StatusBar lastUpdatedAt={lastUpdatedAt} loading={loading} ok={ok} socketState={socketStatus} />
 
       {errorMessage && <ErrorBanner message={errorMessage} onRetry={refresh} retrying={loading} />}
 

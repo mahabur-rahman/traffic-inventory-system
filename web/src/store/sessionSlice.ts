@@ -14,17 +14,25 @@ export const sessionSlice = createSlice({
   name: "session",
   initialState,
   reducers: {
-    setSession: (state, action: { payload: { userId: string; username: string } }) => {
+    hydrateFromStorage: (state, action: { payload: { userId: string | null; username: string | null } }) => {
       state.userId = action.payload.userId;
       state.username = action.payload.username;
     },
-    clearSession: (state) => {
+    setUser: (state, action: { payload: { userId: string; username: string } }) => {
+      state.userId = action.payload.userId;
+      state.username = action.payload.username;
+    },
+    clearUser: (state) => {
       state.userId = null;
       state.username = null;
     }
   }
 });
 
-export const { setSession, clearSession } = sessionSlice.actions;
-export const sessionReducer = sessionSlice.reducer;
+export const { hydrateFromStorage, setUser, clearUser } = sessionSlice.actions;
 
+// Backwards-compatible aliases (older code)
+export const setSession = setUser;
+export const clearSession = clearUser;
+
+export const sessionReducer = sessionSlice.reducer;

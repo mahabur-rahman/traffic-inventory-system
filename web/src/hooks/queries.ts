@@ -6,6 +6,7 @@ import { notifyError, notifySuccess } from "../lib/notify";
 import type { DropsListResponse } from "../types/drop";
 import type { ReservationsMeResponse } from "../types/reservation";
 import { ApiError } from "../types/api";
+import { useAppSelector } from "../store/hooks";
 
 export const dropsKey = ["drops"] as const;
 export const myReservationsKey = ["reservations", "me"] as const;
@@ -18,9 +19,11 @@ export function useDropsQuery() {
 }
 
 export function useMyReservationsQuery() {
+  const userId = useAppSelector((s) => s.session.userId);
   return useQuery({
     queryKey: myReservationsKey,
-    queryFn: getMyReservations
+    queryFn: getMyReservations,
+    enabled: Boolean(userId)
   });
 }
 
@@ -126,3 +129,7 @@ export function useReserveDrop() {
 export function usePurchaseDrop() {
   return usePurchaseDropMutation();
 }
+
+// Prompt aliases
+export const useReserveMutation = useReserveDropMutation;
+export const usePurchaseMutation = usePurchaseDropMutation;

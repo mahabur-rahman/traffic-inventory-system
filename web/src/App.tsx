@@ -1,11 +1,10 @@
-import toast from "react-hot-toast";
-
 import { useAuth } from "./hooks/useAuth";
 import { LoginCard } from "./components/LoginCard";
 import { Dashboard } from "./pages/Dashboard";
+import { SessionBar } from "./components/SessionBar";
 
 function App() {
-  const { auth, isAuthed, logout } = useAuth();
+  const { isAuthed } = useAuth();
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -16,25 +15,7 @@ function App() {
             <p className="text-xs text-zinc-400">Dashboard (function over form)</p>
           </div>
 
-          {isAuthed ? (
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <div className="text-xs text-zinc-400">Signed in as</div>
-                <div className="text-sm font-semibold">{auth?.username}</div>
-              </div>
-              <button
-                className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm hover:bg-zinc-900"
-                onClick={() => {
-                  logout();
-                  toast.success("Signed out");
-                }}
-              >
-                Sign out
-              </button>
-            </div>
-          ) : (
-            <div className="text-xs text-zinc-500">Not signed in</div>
-          )}
+          <SessionBar />
         </div>
       </header>
 

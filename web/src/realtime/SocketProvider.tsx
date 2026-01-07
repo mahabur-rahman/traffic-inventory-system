@@ -3,6 +3,8 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ClientSocket } from "./socket";
 import { createSocket } from "./socket";
 import type { SocketConnectionState } from "../types/socket";
+import { useAppDispatch } from "../store/hooks";
+import { setStatus } from "../store/socketSlice";
 
 type SocketContextValue = {
   socket: ClientSocket | null;
@@ -12,6 +14,7 @@ type SocketContextValue = {
 const SocketContext = createContext<SocketContextValue | null>(null);
 
 export function SocketProvider(props: { children: React.ReactNode }) {
+  const dispatch = useAppDispatch();
   const [socket, setSocket] = useState<ClientSocket | null>(null);
   const [connectionState, setConnectionState] = useState<SocketConnectionState>("disconnected");
 
@@ -19,16 +22,34 @@ export function SocketProvider(props: { children: React.ReactNode }) {
     const s = createSocket();
     setSocket(s);
 
-    const onConnect = () => setConnectionState("connected");
-    const onDisconnect = () => setConnectionState("disconnected");
+    const onConnect = () => {
+      setConnectionState("connected");
+      dispatch(setStatus("connected"));
+    };
+    const onDisconnect = () => {
+      setConnectionState("disconnected");
+      dispatch(setStatus("disconnected"));
+    };
 
     s.on("connect", onConnect);
     s.on("disconnect", onDisconnect);
 
-    s.io.on("reconnect_attempt", () => setConnectionState("reconnecting"));
-    s.io.on("reconnect_error", () => setConnectionState("reconnecting"));
-    s.io.on("reconnect_failed", () => setConnectionState("disconnected"));
-    s.io.on("reconnect", () => setConnectionState("connected"));
+    s.io.on("reconnect_attempt", () => {
+      setConnectionState("reconnecting");
+      dispatch(setStatus("reconnecting"));
+    });
+    s.io.on("reconnect_error", () => {
+      setConnectionState("reconnecting");
+      dispatch(setStatus("reconnecting"));
+    });
+    s.io.on("reconnect_failed", () => {
+      setConnectionState("disconnected");
+      dispatch(setStatus("disconnected"));
+    });
+    s.io.on("reconnect", () => {
+      setConnectionState("connected");
+      dispatch(setStatus("connected"));
+    });
 
     return () => {
       s.off("connect", onConnect);
@@ -39,8 +60,9 @@ export function SocketProvider(props: { children: React.ReactNode }) {
       s.io.off("reconnect");
       s.close();
       setSocket(null);
+      dispatch(setStatus("disconnected"));
     };
-  }, []);
+  }, [dispatch]);
 
   const value = useMemo(() => ({ socket, connectionState }), [socket, connectionState]);
   return <SocketContext.Provider value={value}>{props.children}</SocketContext.Provider>;
@@ -53,4 +75,3 @@ export function useSocket() {
   }
   return ctx;
 }
-
