@@ -11,7 +11,7 @@ async function start() {
   const sequelize = await connectDB();
   initModels(sequelize);
 
-  const stopExpiryWorker = startReservationExpiryWorker();
+  const stopExpiryWorker = startReservationExpiryWorker({ intervalMs: env.expiryPollMs });
 
   const httpServer = http.createServer(app);
   initSocket(httpServer);

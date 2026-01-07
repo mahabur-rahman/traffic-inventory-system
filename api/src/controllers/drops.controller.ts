@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { ApiError } from "../utils/apiError";
 import { sendSuccess } from "../utils/respond";
 import { createDrop, fetchLatestPurchasersByDropIds, listActiveDrops } from "../services/drops.service";
+import { emitDropCreated, emitStockUpdated } from "../realtime/socket";
 
 function serializeDrop(drop: any) {
   return {
@@ -29,6 +30,8 @@ export async function postDrop(req: Request, res: Response) {
   const drop = await createDrop({ ...body, created_by: userId });
   const data = serializeDrop(drop.get ? drop.get({ plain: true }) : drop);
 
+  emitDropCreated({ drop: data });
+  emitStockUpdated({ dropId: data.id, availableStock: data.available_stock });
   return sendSuccess(res, data, { requestId: res.locals.requestId }, 201);
 }
 

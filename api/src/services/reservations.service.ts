@@ -3,6 +3,7 @@ import { Op, QueryTypes, UniqueConstraintError } from "sequelize";
 import { getSequelize } from "../db/sequelize";
 import { getModels } from "../models";
 import { ApiError } from "../utils/apiError";
+import { emitStockUpdated } from "../realtime/socket";
 
 export type ReserveResult = {
   reservation: {
@@ -26,15 +27,15 @@ export async function reserveOne(params: { dropId: string; userId: string; ttlSe
   const ttlSeconds = params.ttlSeconds ?? 60;
 
   try {
-    return await sequelize.transaction(async (transaction) => {
+    const result = await sequelize.transaction(async (transaction) => {
       const expiredRows = (await sequelize.query(
         `
           WITH expired AS (
             UPDATE reservations
-            SET status = 'expired', "updatedAt" = NOW()
+            SET status = 'EXPIRED', "updatedAt" = NOW()
             WHERE user_id = :userId
               AND drop_id = :dropId
-              AND status = 'active'
+              AND status = 'ACTIVE'
               AND expires_at IS NOT NULL
               AND expires_at <= NOW()
             RETURNING id
@@ -93,7 +94,11 @@ export async function reserveOne(params: { dropId: string; userId: string; ttlSe
         }>;
 
         if (!dropRow.length) {
-          throw new ApiError({ statusCode: 404, code: "DROP_NOT_FOUND", message: "Drop not found" });
+          return {
+            ok: false as const,
+            error: { statusCode: 404, code: "DROP_NOT_FOUND", message: "Drop not found" },
+            effects: null
+          };
         }
 
         const d = dropRow[0];
@@ -102,25 +107,36 @@ export async function reserveOne(params: { dropId: string; userId: string; ttlSe
         const endsAtOk = !d.ends_at || new Date(d.ends_at) > now;
 
         if (!startsAtOk || !endsAtOk || d.status !== "live") {
-          throw new ApiError({
-            statusCode: 409,
-            code: "DROP_NOT_ACTIVE",
-            message: "Drop is not active"
-          });
+          return {
+            ok: false as const,
+            error: { statusCode: 409, code: "DROP_NOT_ACTIVE", message: "Drop is not active" },
+            effects:
+              expiredCount > 0
+                ? { stockUpdated: { dropId: d.id, availableStock: Number(d.available_stock) } }
+                : null
+          };
         }
         if (Number(d.available_stock) <= 0) {
-          throw new ApiError({
-            statusCode: 409,
-            code: "OUT_OF_STOCK",
-            message: "Drop is out of stock"
-          });
+          return {
+            ok: false as const,
+            error: { statusCode: 409, code: "OUT_OF_STOCK", message: "Drop is out of stock" },
+            effects:
+              expiredCount > 0
+                ? { stockUpdated: { dropId: d.id, availableStock: Number(d.available_stock) } }
+                : null
+          };
         }
 
-        throw new ApiError({
-          statusCode: 409,
-          code: "OUT_OF_STOCK",
-          message: "Unable to reserve due to concurrent conflict"
-        });
+        return {
+          ok: false as const,
+          error: {
+            statusCode: 409,
+            code: "CONFLICT",
+            message: "Unable to reserve due to concurrent conflict"
+          },
+          effects:
+            expiredCount > 0 ? { stockUpdated: { dropId: d.id, availableStock: Number(d.available_stock) } } : null
+        };
       }
 
       const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
@@ -129,7 +145,7 @@ export async function reserveOne(params: { dropId: string; userId: string; ttlSe
         {
           userId: params.userId,
           dropId: params.dropId,
-          status: "active",
+          status: "ACTIVE",
           expiresAt
         },
         { transaction }
@@ -138,20 +154,32 @@ export async function reserveOne(params: { dropId: string; userId: string; ttlSe
       const plain = reservation.get ? reservation.get({ plain: true }) : reservation;
 
       return {
-        reservation: {
-          id: plain.id,
-          drop_id: plain.dropId,
-          user_id: plain.userId,
-          status: plain.status,
-          expires_at: plain.expiresAt ? new Date(plain.expiresAt).toISOString() : null,
-          created_at: plain.createdAt ? new Date(plain.createdAt).toISOString() : null
-        },
-        drop: {
-          id: updatedRows[0].id,
-          available_stock: updatedRows[0].available_stock
-        }
-      } satisfies ReserveResult;
+        ok: true as const,
+        value: {
+          reservation: {
+            id: plain.id,
+            drop_id: plain.dropId,
+            user_id: plain.userId,
+            status: plain.status,
+            expires_at: plain.expiresAt ? new Date(plain.expiresAt).toISOString() : null,
+            created_at: plain.createdAt ? new Date(plain.createdAt).toISOString() : null
+          },
+          drop: {
+            id: updatedRows[0].id,
+            available_stock: updatedRows[0].available_stock
+          }
+        } satisfies ReserveResult
+      };
     });
+
+    if (!result.ok) {
+      if (result.effects?.stockUpdated) {
+        emitStockUpdated(result.effects.stockUpdated);
+      }
+      throw new ApiError(result.error);
+    }
+
+    return result.value;
   } catch (err: any) {
     if (err instanceof UniqueConstraintError) {
       throw new ApiError({
@@ -169,7 +197,7 @@ export async function listMyActiveReservations(userId: string) {
   const now = new Date();
 
   const rows = await (Reservation as any).findAll({
-    where: { userId, status: "active", expiresAt: { [Op.gt]: now } },
+    where: { userId, status: "ACTIVE", expiresAt: { [Op.gt]: now } },
     include: [{ model: Drop, as: "drop" }],
     order: [["expiresAt", "ASC"]]
   });

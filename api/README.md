@@ -1,405 +1,222 @@
-# API (Express + Sequelize + Postgres/Neon + TypeScript)
+# API — Real-Time High-Traffic Inventory (Sneaker Drop)
 
-## Recommended layout
+Express + Sequelize + Postgres (Neon) + TypeScript + Socket.IO.
 
-```
-api/
-  src/
-    config/
-      env.ts
-    controllers/
-      health.controller.ts
-    db/
-      migrations/
-        0001-create-users.ts
-        0002-create-drops-reservations-purchases.ts
-      sequelize.ts
-      umzug.ts
-    middlewares/
-      auth.ts
-      errorHandler.ts
-      httpLogger.ts
-      notFound.ts
-      requestContext.ts
-      validate.ts
-    models/
-      Drop.ts
-      Purchase.ts
-      Reservation.ts
-      User.ts
-      index.ts
-    routes/
-      demo.routes.ts
-      health.routes.ts
-      me.routes.ts
-      index.ts
-    scripts/
-      migrate.ts
-    types/
-      express.d.ts
-    utils/
-      apiError.ts
-      asyncHandler.ts
-      respond.ts
-    app.ts
-    logger.ts
-    server.ts
-  .env.example
-  nodemon.json
-  package.json
-  tsconfig.json
-```
+## Run
 
-## Setup
-
-1) Create `api/.env` from `api/.env.example` and paste your Neon `DATABASE_URL`.
-
-2) Install and run:
+1) Create `api/.env` from `api/.env.example`
+2) Install + migrate + run:
 
 ```bash
 cd api
 npm install
+npm run db:migrate
 npm run dev
 ```
 
-## Migrations (optional)
+## Environment
 
-```bash
-cd api
-npm run db:migrate
+See `api/.env.example:1`.
+
+Required:
+
+- `DATABASE_URL`
+
+Recommended:
+
+- `PORT`
+- `CORS_ORIGINS` (comma-separated or `*`)
+- `RESERVATION_TTL_SECONDS` (default `60`)
+- `EXPIRY_POLL_MS` (default `2000`)
+- `LOG_LEVEL`
+
+## Structure (recommended)
+
+```
+api/src/
+  config/        # env parsing
+  controllers/   # HTTP handlers
+  db/            # sequelize + migrations (umzug)
+  middlewares/   # auth, validation, errors, logging
+  models/        # sequelize models + associations
+  realtime/      # socket.io server + emit helpers
+  routes/        # express routers
+  services/      # business logic + DB transactions
+  validators/    # zod schemas
+  workers/       # background jobs (expiry polling)
 ```
 
-## Postgres schema (users, drops, reservations, purchases)
+## API conventions
 
-Implemented via migrations:
+Base paths:
 
-- `api/src/db/migrations/0001-create-users.ts:1`
-- `api/src/db/migrations/0002-create-drops-reservations-purchases.ts:1`
-- `api/src/db/migrations/0004-update-reservations-expiry-indexes.ts:1`
-- `api/src/db/migrations/0005-update-purchases-qty-createdat-indexes.ts:1`
-- `api/src/db/migrations/0006-add-status-check-constraints.ts:1`
+- Primary: `/api/*`
+- Alias: `/api/v1/*`
 
-### Tables
+Success envelope:
 
-- `users`: people in the system (`id`, `username`, timestamps)
-- `drops`: sellable/available “drop” created by a user (`created_by -> users.id`)
-- `reservations`: reservation record (`drop_id`, `user_id`, `status`, `expires_at`, `createdAt`, `updatedAt`)
-- `purchases`: a user purchase for a drop, optionally tied to a reservation (`reservation_id -> reservations.id`)
+```json
+{ "success": true, "data": {}, "meta": { "requestId": "..." } }
+```
 
-### Relationships
+Error envelope:
 
-- `users (1) -> (many) drops` via `drops.created_by`
-- `users (1) -> (many) reservations` via `reservations.user_id`
-- `drops (1) -> (many) reservations` via `reservations.drop_id`
-- `users (1) -> (many) purchases` via `purchases.user_id`
-- `drops (1) -> (many) purchases` via `purchases.drop_id`
-- `reservations (0..1) <-> (0..1) purchases` via `purchases.reservation_id` (unique, nullable)
+```json
+{ "success": false, "error": { "code": "OUT_OF_STOCK", "message": "..." }, "meta": { "requestId": "..." } }
+```
 
-Models + associations:
+## Auth placeholder
 
-- `api/src/models/index.ts:1`
+Header: `X-User-Id: <uuid>`
 
-Drops fields (core):
+- Middleware: `api/src/middlewares/auth.ts:1`
+- Dev mode: if `X-User-Id` is valid UUID but user doesn’t exist, it auto-creates a user (optional `X-User-Name`).
+- Dev helper endpoint: `POST /api/internal/users` with `{ "username": "alice" }` (dev only).
 
-- `name`, `price`, `total_stock`, `available_stock`, `starts_at`, `ends_at`, `status`
+## Data model (ERD summary)
 
-Purchases fields (core):
+Tables:
 
-- `drop_id`, `user_id`, `qty` (default 1), `createdAt`
+- `users` (id, username unique, createdAt, updatedAt)
+- `drops` (name, price, total_stock, available_stock, starts_at, ends_at, status)
+- `reservations` (drop_id, user_id, status, expires_at, createdAt, updatedAt)
+- `purchases` (drop_id, user_id, qty, createdAt, …)
 
-DB-level protections (recommended):
+Relationships:
 
-- `CHECK` constraints: non-negative stock (`available_stock >= 0`), `available_stock <= total_stock`, `qty > 0`, status allowed values
-- `FOREIGN KEY` constraints: keep references valid (`drop_id`, `user_id`, etc.)
-- Concurrency-safe stock decrement: do stock updates as a single SQL statement inside a transaction, e.g. `UPDATE drops SET available_stock = available_stock - $1 WHERE id = $2 AND available_stock >= $1`
+- `users 1 -> many drops` (`drops.created_by`)
+- `users 1 -> many reservations` (`reservations.user_id`)
+- `drops 1 -> many reservations` (`reservations.drop_id`)
+- `users 1 -> many purchases` (`purchases.user_id`)
+- `drops 1 -> many purchases` (`purchases.drop_id`)
+- `reservations 0..1 <-> 0..1 purchases` (`purchases.reservation_id` unique)
 
-## Endpoints
+Lifecycle statuses:
 
-- `GET /api/v1/health` (includes a quick DB auth check)
-- `POST /api/v1/drops`
-- `GET /api/v1/drops`
-- `POST /api/v1/drops/:dropId/reserve`
-- `POST /api/v1/drops/:dropId/purchase`
-- `GET /api/v1/reservations/me`
+- `drops.status`: `draft|scheduled|live|ended|cancelled`
+- `reservations.status`: `ACTIVE|EXPIRED|CANCELLED|CONSUMED`
+- `purchases.status`: `pending|paid|failed|cancelled|refunded`
 
-Note: the same routes are also mounted under `/api/*` for assessment compatibility (example: `GET /api/drops`).
+DB protections:
+
+- Atomic stock decrement: `UPDATE drops SET available_stock = available_stock - 1 WHERE id=? AND available_stock > 0 RETURNING ...`
+- Checks: `available_stock >= 0`, `available_stock <= total_stock`, `qty > 0`, valid status values
+- Uniqueness: one ACTIVE reservation per user per drop (partial unique index)
+- Indexes: active drops query, expiry scan, latest buyers
 
 ## Drops API
 
-### POST `/api/v1/drops`
+### POST `/api/drops`
 
-Creates a drop, initializes stock (`available_stock = total_stock`), and sets status from `starts_at` when `status` is not provided:
+Creates a drop and initializes stock:
 
-- If `starts_at` is missing: `status = "draft"`
-- If `starts_at` is in the future: `status = "scheduled"`
-- If `starts_at` is now/past: `status = "live"`
+- `available_stock = total_stock`
+- If `status` not provided:
+  - no `starts_at` → `draft`
+  - future `starts_at` → `scheduled`
+  - past/now `starts_at` → `live`
 
-Request body (JSON):
+Implementation: `api/src/controllers/drops.controller.ts:1`, `api/src/services/drops.service.ts:1`
 
-```json
-{
-  "name": "Sneaker Drop 1",
-  "price": 5000,
-  "total_stock": 100,
-  "starts_at": "2026-01-07T10:00:00.000Z",
-  "ends_at": "2026-01-08T10:00:00.000Z",
-  "status": "scheduled"
-}
-```
+### GET `/api/drops`
 
-Validation middleware:
+Returns “active” drops:
 
-- `api/src/validators/drop.schemas.ts:1`
-- `api/src/middlewares/validate.ts:1`
+- `starts_at <= now`
+- `ends_at IS NULL OR ends_at > now`
+- status in `scheduled|live`
 
-### GET `/api/v1/drops`
+Also returns “Drop Activity Feed”:
 
-Returns “active” drops (status `scheduled` or `live`, and not ended) with `available_stock`, pagination metadata, and an activity feed containing top 3 latest purchasers per drop.
+- `activity_feed.latest_purchasers`: top 3 latest successful purchasers per drop (username)
+- Efficient query uses window function (`ROW_NUMBER() OVER (PARTITION BY drop_id ORDER BY createdAt DESC)`)
 
-Response JSON:
+## Reservations API (atomic, no oversell)
 
-```json
-{
-  "success": true,
-  "data": {
-    "items": [
-      {
-        "id": "uuid",
-        "name": "Sneaker Drop 1",
-        "price": 5000,
-        "total_stock": 100,
-        "available_stock": 90,
-        "starts_at": "2026-01-07T10:00:00.000Z",
-        "ends_at": null,
-        "status": "live",
-        "created_by": "uuid",
-        "created_at": "2026-01-07T09:00:00.000Z",
-        "activity_feed": {
-          "latest_purchasers": [
-            { "user_id": "uuid", "username": "alice", "qty": 1, "created_at": "2026-01-07T10:01:00.000Z" }
-          ]
-        }
-      }
-    ],
-    "pagination": { "limit": 20, "offset": 0, "total": 1 }
-  },
-  "meta": { "requestId": "..." }
-}
-```
+Policy: **one ACTIVE reservation per user per drop** (DB-enforced).
 
-Efficient “latest 3 purchasers per drop” query:
+### POST `/api/drops/:dropId/reserve`
 
-- Service: `api/src/services/drops.service.ts:1`
-- SQL (window function via `ROW_NUMBER()`):
-  - `WITH ranked AS ( ... ROW_NUMBER() OVER (PARTITION BY p.drop_id ORDER BY p."createdAt" DESC) ... ) SELECT ... WHERE rn <= 3`
+Auth required. Reserves **1 unit**:
 
-## Reservations API (atomic reserve / oversell prevention)
+Transaction:
 
-Policy: **one active reservation per user per drop**, enforced by a partial unique index:
-
-- Migration: `api/src/db/migrations/0007-add-reservations-active-unique.ts:1`
-
-### POST `/api/v1/drops/:dropId/reserve`
-
-Auth required (`X-User-Id`). Reserves **1 unit**:
-
-- Atomic decrement (Postgres): `UPDATE drops SET available_stock = available_stock - 1 WHERE id = ? AND available_stock > 0 RETURNING ...`
-- Transaction: decrement stock then insert reservation with `expires_at = now()+60s`
-
-Implementation:
-
-- Route: `api/src/routes/reservations.routes.ts:1`
-- Service (SQL + transaction): `api/src/services/reservations.service.ts:1`
-
-Success `201`:
-
-```json
-{
-  "success": true,
-  "data": {
-    "reservation": { "id": "uuid", "drop_id": "uuid", "user_id": "uuid", "status": "active", "expires_at": "iso", "created_at": "iso" },
-    "drop": { "id": "uuid", "available_stock": 9 }
-  },
-  "meta": { "requestId": "..." }
-}
-```
-
-Errors:
-
-- `401 AUTH_REQUIRED`: missing `X-User-Id`
-- `404 DROP_NOT_FOUND`: drop id not found
-- `409 OUT_OF_STOCK`: no stock available
-- `409 DROP_NOT_ACTIVE`: drop not live / outside time window
-- `409 ALREADY_RESERVED`: user already has an active reservation for this drop
-
-Idempotency suggestion (optional):
-
-- Support `Idempotency-Key` header for retries. Store it with the reservation and return the same reservation if the same key is retried (prevents double-decrement on client retry).
-
-### GET `/api/v1/reservations/me`
-
-Auth required. Lists the user’s active (non-expired) reservations (for testing).
-
-## Purchase API (only if reserved)
-
-### POST `/api/v1/drops/:dropId/purchase`
-
-Auth required (`X-User-Id`). Requires **an ACTIVE, unexpired reservation** for that user+drop.
-
-Transaction logic:
-
-- `SELECT ... FOR UPDATE` on the reservation row (prevents double purchase)
-- Validate `status='active'` and `expires_at > now()`
-- Mark reservation `status='consumed'`
-- Insert purchase row (`qty=1`, `status='paid'`)
-- Do **not** decrement `drops.available_stock` again (it was decremented during reserve)
-
-Implementation:
-
-- Route: `api/src/routes/purchases.routes.ts:1`
-- Service: `api/src/services/purchases.service.ts:1`
+1) (Optional) expire user’s stale ACTIVE reservation for this drop and restore stock
+2) Atomic decrement stock (oversell prevention)
+3) Insert reservation with `expires_at = now() + RESERVATION_TTL_SECONDS`
 
 Errors:
 
 - `401 AUTH_REQUIRED`
-- `409 RESERVATION_REQUIRED`
-- `409 RESERVATION_EXPIRED`
-- `409 RESERVATION_NOT_ACTIVE`
-- `409 RESERVATION_CONFLICT`
-- `409 ALREADY_PURCHASED`
+- `404 DROP_NOT_FOUND`
+- `409 DROP_NOT_ACTIVE`
+- `409 OUT_OF_STOCK`
+- `409 ALREADY_RESERVED`
 
-## Reservation expiration & stock recovery
+Idempotency (optional recommendation):
 
-Strategy: **background worker polling every ~2 seconds**.
+- Accept `Idempotency-Key` header and persist it (e.g., on `reservations`) to return the same reservation for client retries without double-decrementing stock.
 
-Why:
+### GET `/api/reservations/me`
 
-- Works without external infra (no cron/queue required for MVP)
-- Makes oversell prevention + recovery deterministic at the DB level
-- Safe across restarts: run one cleanup cycle on boot, then keep polling
+Auth required. Lists ACTIVE, unexpired reservations (for testing).
 
-Implementation:
+### DELETE `/api/reservations/:id/cancel` (optional)
 
-- Processor (concurrency-safe): `api/src/services/reservationExpiry.service.ts:1`
-  - Uses `UPDATE ... WHERE status='active' AND expires_at <= now() ... RETURNING` with `FOR UPDATE SKIP LOCKED`
-  - In the same transaction, increments `drops.available_stock` for affected drops
-- Worker startup on boot: `api/src/workers/reservationExpiry.worker.ts:1` and wired in `api/src/server.ts:1`
+Auth required. Cancels ACTIVE, unexpired reservation and restores stock (+1) in a transaction.
+
+## Expiration & stock recovery
+
+Strategy: Node background worker polling every ~`EXPIRY_POLL_MS` (simple MVP; restart-safe).
+
+- On boot: runs one cleanup cycle immediately
+- Then polls every interval
+
+Concurrency-safe processing:
+
+- `UPDATE reservations ... WHERE status='ACTIVE' AND expires_at <= now() ... FOR UPDATE SKIP LOCKED RETURNING ...`
+- In same transaction: increment affected drops’ `available_stock`
 
 Manual trigger (dev only):
 
-- `POST /api/internal/expire-now` (returns `{ expiredCount, updatedDropIds }`)
+- `POST /api/internal/expire-now`
 
-Dev helpers:
+Edge rule (purchase vs expiry at boundary):
 
-- `POST /api/internal/users` with `{ "username": "alice" }` to create a user for testing and get back a UUID for `X-User-Id`.
+- If `expires_at <= now()` at purchase time, purchase fails with `RESERVATION_EXPIRED` (reservation is marked EXPIRED and stock restored).
 
-## API conventions
+## Purchase API (only if reserved)
 
-### Base URL
+### POST `/api/drops/:dropId/purchase`
 
-- Base path: `/api` (alias) or `/api/v1`
-- Example: `https://your-domain.com/api/v1/health`
+Auth required. Requires ACTIVE, unexpired reservation:
 
-### JSON response shape
+Transaction:
 
-Success:
-```json
-{
-  "success": true,
-  "data": {},
-  "meta": { "requestId": "..." }
-}
-```
+1) Lock reservation row (`SELECT ... FOR UPDATE`)
+2) Validate ACTIVE and not expired
+3) Mark reservation `CONSUMED`
+4) Insert purchase (`qty=1`, `status='paid'`)
 
-Error:
-```json
-{
-  "success": false,
-  "error": { "code": "NOT_FOUND", "message": "Not Found" },
-  "meta": { "requestId": "..." }
-}
-```
+Rule: drop stock is **NOT decremented** again (it was decremented at reserve time).
 
-### Error format
+## Socket.IO real-time sync
 
-- Always return JSON with `success: false`.
-- `error.code` is a stable, UPPER_SNAKE_CASE string for clients.
-- `error.message` is a human-readable message.
-- Optional `error.details` for validation/diagnostics (avoid sensitive data).
+Server: `api/src/realtime/socket.ts:1` (wired in `api/src/server.ts:1`)
 
-### HTTP status codes
+Rooms:
 
-- `200` OK (read/update success)
-- `201` Created (create success)
-- `204` No Content (success without body; use sparingly)
-- `400` Bad Request (invalid input / parsing)
-- `401` Unauthorized (missing/invalid auth)
-- `403` Forbidden (auth ok, not allowed)
-- `404` Not Found
-- `409` Conflict (unique constraint, state conflict)
-- `422` Unprocessable Entity (validation failure)
-- `429` Too Many Requests
-- `500` Internal Server Error (unexpected)
-- `503` Service Unavailable (downstream dependency)
+- all clients auto-join global room `drops`
+- optional per-drop rooms: client emits `drops:join { dropId }` / `drops:leave { dropId }`
 
-## Request validation (Zod)
+Events (primary contract):
 
-Pattern: define a Zod schema and apply `validate({ body/query/params })` middleware.
+- `DROP_CREATED` → `{ drop }`
+- `STOCK_UPDATED` → `{ dropId, availableStock }`
+- `RESERVATION_EXPIRED` → `{ dropId, reservationId }`
+- `PURCHASE_COMPLETED` → `{ dropId, username, purchasedAt }`
+- `ACTIVITY_UPDATED` → `{ dropId, latestPurchasers: [{ userId, username, qty, createdAt }] }`
 
-- Middleware: `api/src/middlewares/validate.ts:1`
-- Example route: `POST /api/v1/demo/echo` in `api/src/routes/demo.routes.ts:1`
+Emitting rule:
 
-Example request:
-```bash
-curl -X POST http://localhost:4000/api/v1/demo/echo ^
-  -H "Content-Type: application/json" ^
-  -d "{\"email\":\"test@example.com\",\"name\":\"Techzu\"}"
-```
-
-## Auth placeholder (X-User-Id)
-
-For now, auth is a simple placeholder header:
-
-- Header: `X-User-Id: <uuid>`
-- Loader middleware (runs globally): `api/src/middlewares/auth.ts:1`
-- Guard middleware (per-route): `requireUser`
-
-Example protected endpoint:
-
-- `GET /api/v1/me` (requires `X-User-Id`)
-
-## Async error handling (concurrency-safe)
-
-Express 4 does **not** automatically catch rejected Promises from `async` handlers/middlewares. Use the async wrapper everywhere you have `async` code:
-
-- Wrapper: `api/src/utils/asyncHandler.ts:1`
-- Example: `api/src/routes/health.routes.ts:1`
-
-Pattern:
-
-- For any `async (req, res) => { ... }` route handler: `router.get("/x", asyncHandler(handler))`
-- For any `async` middleware in `app.use(...)`: `app.use(asyncHandler(middleware))`
-
-Concurrency note: if you start background work (e.g. `Promise.all(...)`), always `await` it or catch errors; otherwise you'll get `unhandledRejection` that bypasses Express.
-
-## Logging + correlation (request-id)
-
-This API uses structured logging with Pino and correlates requests via `X-Request-Id`.
-
-- HTTP logger: `api/src/middlewares/httpLogger.ts:1` (Pino request logs)
-- Context: `api/src/middlewares/requestContext.ts:1` (sets `res.locals.requestId` used by response `meta.requestId`)
-
-Best practices:
-
-- Clients may send `X-Request-Id`; server will echo it back, otherwise it generates one.
-- Always include `meta.requestId` in responses for debugging.
-- Avoid logging secrets; logger redacts common sensitive fields (see `api/src/logger.ts:1`).
-
-## Real-time updates (Socket.IO)
-
-Socket.IO server starts with the API and broadcasts stock/activity updates to all connected clients.
-
-- Server setup: `api/src/realtime/socket.ts:1` and `api/src/server.ts:1`
-- Emits:
-  - `drop:stock_updated` → `{ dropId, availableStock }` (on reserve + expiry recovery)
-  - `drop:activity_updated` → `{ dropId, latestPurchasers: [{ userId, username, qty, createdAt }] }` (on purchase)
+- Emit only after DB commit (controllers emit after service transactions return; worker emits after expiry transaction completes).

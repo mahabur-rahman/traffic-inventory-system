@@ -4,6 +4,8 @@ import { ApiError } from "../utils/apiError";
 import { sendSuccess } from "../utils/respond";
 import { listMyActiveReservations, reserveOne } from "../services/reservations.service";
 import { emitDropStockUpdated } from "../realtime/socket";
+import { cancelReservation } from "../services/reservationCancel.service";
+import { env } from "../config/env";
 
 export async function postReserve(req: Request, res: Response) {
   const userId = req.user?.id;
@@ -12,7 +14,7 @@ export async function postReserve(req: Request, res: Response) {
   }
 
   const dropId = req.params.dropId;
-  const result = await reserveOne({ dropId, userId, ttlSeconds: 60 });
+  const result = await reserveOne({ dropId, userId, ttlSeconds: env.reservationTtlSeconds });
 
   emitDropStockUpdated({ dropId: result.drop.id, availableStock: result.drop.available_stock });
   return sendSuccess(res, result, { requestId: res.locals.requestId }, 201);
@@ -42,4 +44,18 @@ export async function getMyReservations(req: Request, res: Response) {
   }));
 
   return sendSuccess(res, { items: data }, { requestId: res.locals.requestId });
+}
+
+export async function deleteCancelReservation(req: Request, res: Response) {
+  const userId = req.user?.id;
+  if (!userId) {
+    throw new ApiError({ statusCode: 401, code: "AUTH_REQUIRED", message: "X-User-Id header is required" });
+  }
+
+  const result = await cancelReservation({ reservationId: req.params.id, userId });
+  if (result.availableStock !== null) {
+    emitDropStockUpdated({ dropId: result.dropId, availableStock: result.availableStock });
+  }
+
+  return sendSuccess(res, result, { requestId: res.locals.requestId });
 }

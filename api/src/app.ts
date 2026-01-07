@@ -5,6 +5,7 @@ import helmet from "helmet";
 import type { RequestHandler } from "express";
 
 import routes from "./routes/index";
+import { env } from "./config/env";
 import { loadUser } from "./middlewares/auth";
 import { errorHandler } from "./middlewares/errorHandler";
 import { httpLogger } from "./middlewares/httpLogger";
@@ -18,7 +19,16 @@ export const app = express();
 app.use(httpLogger);
 app.use(requestContext);
 app.use(helmet() as unknown as RequestHandler);
-app.use(cors());
+app.use(
+  cors(
+    env.corsOrigins.includes("*")
+      ? {}
+      : {
+          origin: env.corsOrigins,
+          credentials: true
+        }
+  )
+);
 app.use(compression());
 app.use(express.json({ limit: "1mb" }) as unknown as RequestHandler);
 app.use(asyncHandler(loadUser));

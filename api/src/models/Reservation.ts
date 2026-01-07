@@ -23,7 +23,7 @@ export function defineReservation(
       status: {
         type: dataTypes.STRING(32),
         allowNull: false,
-        defaultValue: "active"
+        defaultValue: "ACTIVE"
       },
       expiresAt: {
         type: dataTypes.DATE,

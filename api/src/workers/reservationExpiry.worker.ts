@@ -1,6 +1,6 @@
 import { logger } from "../logger";
 import { expireReservationsOnce } from "../services/reservationExpiry.service";
-import { emitDropStockUpdated } from "../realtime/socket";
+import { emitReservationExpired, emitStockUpdated } from "../realtime/socket";
 
 type WorkerOptions = {
   intervalMs?: number;
@@ -22,7 +22,10 @@ export function startReservationExpiryWorker(options?: WorkerOptions) {
       const result = await expireReservationsOnce({ limit: batchLimit });
       if (result.expiredCount > 0) {
         for (const d of result.updatedDrops) {
-          emitDropStockUpdated({ dropId: d.dropId, availableStock: d.availableStock });
+          emitStockUpdated({ dropId: d.dropId, availableStock: d.availableStock });
+        }
+        for (const r of result.expiredReservations) {
+          emitReservationExpired({ dropId: r.dropId, reservationId: r.reservationId });
         }
         logger.info(
           { expiredCount: result.expiredCount, updatedDrops: result.updatedDrops },

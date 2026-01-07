@@ -3,8 +3,8 @@ import { Router } from "express";
 import { requireUser } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
 import { asyncHandler } from "../utils/asyncHandler";
-import { getMyReservations, postReserve } from "../controllers/reservations.controller";
-import { reserveParamsSchema } from "../validators/reservation.schemas";
+import { deleteCancelReservation, getMyReservations, postReserve } from "../controllers/reservations.controller";
+import { cancelReservationParamsSchema, reserveParamsSchema } from "../validators/reservation.schemas";
 
 const router = Router();
 
@@ -17,5 +17,11 @@ router.post(
 
 router.get("/reservations/me", requireUser, asyncHandler(getMyReservations));
 
-export default router;
+router.delete(
+  "/reservations/:id/cancel",
+  requireUser,
+  validate({ params: cancelReservationParamsSchema }),
+  asyncHandler(deleteCancelReservation)
+);
 
+export default router;

@@ -5,6 +5,7 @@ import { getSequelize } from "../db/sequelize";
 export type ExpireResult = {
   expiredCount: number;
   updatedDrops: Array<{ dropId: string; availableStock: number }>;
+  expiredReservations: Array<{ reservationId: string; dropId: string }>;
 };
 
 export async function expireReservationsOnce(params?: { limit?: number }) {
@@ -16,11 +17,11 @@ export async function expireReservationsOnce(params?: { limit?: number }) {
       `
         WITH expired AS (
           UPDATE reservations r
-          SET status = 'expired', "updatedAt" = NOW()
+          SET status = 'EXPIRED', "updatedAt" = NOW()
           WHERE r.id IN (
             SELECT id
             FROM reservations
-            WHERE status = 'active'
+            WHERE status = 'ACTIVE'
               AND expires_at IS NOT NULL
               AND expires_at <= NOW()
             ORDER BY expires_at ASC
@@ -44,21 +45,26 @@ export async function expireReservationsOnce(params?: { limit?: number }) {
         )
         SELECT
           (SELECT COUNT(*)::int FROM expired) AS expired_count,
-          (SELECT COALESCE(json_agg(json_build_object('dropId', id, 'availableStock', available_stock)), '[]'::json) FROM upd) AS updated_drops
+          (SELECT COALESCE(json_agg(json_build_object('dropId', id, 'availableStock', available_stock)), '[]'::json) FROM upd) AS updated_drops,
+          (SELECT COALESCE(json_agg(json_build_object('reservationId', id, 'dropId', drop_id)), '[]'::json) FROM expired) AS expired_reservations
       `,
       {
         transaction,
         replacements: { limit },
         type: QueryTypes.SELECT
       }
-    )) as Array<{ expired_count: number; updated_drops: unknown }>;
+    )) as Array<{ expired_count: number; updated_drops: unknown; expired_reservations: unknown }>;
 
     const row = expired[0] || { expired_count: 0, updated_drops: [] };
     const updatedDrops = Array.isArray(row.updated_drops) ? row.updated_drops : [];
+    const expiredReservations = Array.isArray((row as any).expired_reservations)
+      ? (row as any).expired_reservations
+      : [];
 
     return {
       expiredCount: row.expired_count,
-      updatedDrops: updatedDrops as Array<{ dropId: string; availableStock: number }>
+      updatedDrops: updatedDrops as Array<{ dropId: string; availableStock: number }>,
+      expiredReservations: expiredReservations as Array<{ reservationId: string; dropId: string }>
     } satisfies ExpireResult;
   });
 }

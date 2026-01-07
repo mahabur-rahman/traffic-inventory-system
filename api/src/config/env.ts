@@ -21,7 +21,13 @@ export const env = {
   nodeEnv: process.env.NODE_ENV || "development",
   port: toInt(process.env.PORT, 4000),
   databaseUrl: process.env.DATABASE_URL,
-  dbSsl: toBool(process.env.DB_SSL, true)
+  dbSsl: toBool(process.env.DB_SSL, true),
+  corsOrigins: (process.env.CORS_ORIGINS || "*")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
+  reservationTtlSeconds: toInt(process.env.RESERVATION_TTL_SECONDS, 60),
+  expiryPollMs: toInt(process.env.EXPIRY_POLL_MS, 2000)
 };
 
 export function validateEnv() {
@@ -32,6 +38,13 @@ export function validateEnv() {
     (error as any).missing = missing;
     throw error;
   }
+
+  if (env.reservationTtlSeconds <= 0) {
+    throw new Error("RESERVATION_TTL_SECONDS must be > 0");
+  }
+  if (env.expiryPollMs <= 0) {
+    throw new Error("EXPIRY_POLL_MS must be > 0");
+  }
+
   return env;
 }
-
