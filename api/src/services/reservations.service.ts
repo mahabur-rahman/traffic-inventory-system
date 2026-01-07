@@ -105,8 +105,9 @@ export async function reserveOne(params: { dropId: string; userId: string; ttlSe
         const now = new Date();
         const startsAtOk = !d.starts_at || new Date(d.starts_at) <= now;
         const endsAtOk = !d.ends_at || new Date(d.ends_at) > now;
+        const statusOk = d.status === "live" || d.status === "scheduled";
 
-        if (!startsAtOk || !endsAtOk || d.status !== "live") {
+        if (!startsAtOk || !endsAtOk || !statusOk) {
           return {
             ok: false as const,
             error: { statusCode: 409, code: "DROP_NOT_ACTIVE", message: "Drop is not active" },
