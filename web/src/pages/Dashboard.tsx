@@ -205,22 +205,27 @@ export function Dashboard() {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">Active Drops</h2>
-        <button
-          className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
-          onClick={refresh}
-          disabled={loading}
-        >
-          {loading ? "Refreshing..." : "Refresh"}
-        </button>
-      </div>
+      <section className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-4 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Active Drops</h2>
+            <p className="mt-0.5 text-xs text-zinc-400">Real-time stock updates via WebSocket</p>
+          </div>
+          <button
+            className="inline-flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm shadow-sm hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+            onClick={refresh}
+            disabled={loading}
+          >
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
 
-      <StatusBar lastUpdatedAt={lastUpdatedAt} loading={loading} ok={ok} socketState={socketStatus} />
+        <StatusBar lastUpdatedAt={lastUpdatedAt} loading={loading} ok={ok} socketState={socketStatus} />
+      </section>
 
       {errorMessage && <ErrorBanner message={errorMessage} onRetry={refresh} retrying={loading} />}
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {showSkeletons &&
           Array.from({ length: 6 }).map((_, i) => <DropCardSkeleton key={`s-${i}`} />)}
 
@@ -239,8 +244,9 @@ export function Dashboard() {
           ))}
 
         {!loading && items.length === 0 && !errorMessage && (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 text-sm text-zinc-400">
-            No active drops. Create one via seed (`api: db:seed`) or POST `/api/drops`.
+          <div className="col-span-full rounded-2xl border border-zinc-800 bg-zinc-950/40 p-6 text-sm text-zinc-300 shadow-sm">
+            <div className="font-semibold text-zinc-100">No active drops</div>
+            <div className="mt-1 text-zinc-400">Create one via seed or POST `/api/drops`.</div>
           </div>
         )}
       </div>

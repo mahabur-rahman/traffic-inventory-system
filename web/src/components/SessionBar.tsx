@@ -14,19 +14,25 @@ export function SessionBar() {
 
   if (!isAuthed) return null;
 
+  const initial = (session.username || "?").trim().slice(0, 1).toUpperCase();
+
   return (
     <div className="flex items-center gap-3">
-      <div className="text-right leading-tight">
-        <div className="text-[11px] text-zinc-400">Signed in</div>
-        <div className="text-sm font-semibold">{session.username}</div>
-        {session.userId ? (
-          <div className="font-mono text-[11px] text-zinc-500" title={session.userId}>
-            {session.userId.slice(0, 8)}...
-          </div>
-        ) : null}
+      <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950/60 px-2.5 py-1 shadow-sm">
+        <div className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-xs font-semibold text-emerald-200">
+          {initial}
+        </div>
+        <div className="leading-tight">
+          <div className="text-xs font-semibold text-zinc-100">{session.username}</div>
+          {session.userId ? (
+            <div className="font-mono text-[10px] text-zinc-500" title={session.userId}>
+              {session.userId.slice(0, 8)}...
+            </div>
+          ) : null}
+        </div>
       </div>
       <button
-        className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm shadow-sm hover:bg-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+        className="rounded-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm shadow-sm hover:bg-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
         onClick={async () => {
           logout();
           toast.success("Signed out");

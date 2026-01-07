@@ -12,7 +12,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900 text-zinc-50">
       <header className="sticky top-0 z-10 border-b border-zinc-900 bg-zinc-950/70 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <h1 className="truncate text-lg font-semibold tracking-tight">Techzu - Sneaker Drop</h1>
             <p className="text-xs text-zinc-400">Real-time inventory dashboard</p>
@@ -36,10 +36,20 @@ function App() {
           <LoginCard />
         </main>
       ) : (
-        <main className="mx-auto max-w-6xl px-4 py-8">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 text-sm text-zinc-300 shadow-sm">
-            Session is simulated: requests send <span className="font-mono">X-User-Id</span> and{" "}
-            <span className="font-mono">X-User-Name</span>.
+        <main className="mx-auto max-w-5xl px-4 py-8">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-4 text-sm text-zinc-300 shadow-sm">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-200">
+                i
+              </span>
+              <div>
+                <div className="font-semibold text-zinc-100">Dev session enabled</div>
+                <div className="mt-0.5 text-zinc-400">
+                  Requests send <span className="font-mono">X-User-Id</span> and{" "}
+                  <span className="font-mono">X-User-Name</span>.
+                </div>
+              </div>
+            </div>
           </div>
           <div className="mt-6">
             <Dashboard />

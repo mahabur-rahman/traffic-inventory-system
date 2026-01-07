@@ -1,6 +1,5 @@
 import { API_ORIGIN } from "../lib/env";
 import type { SocketConnectionState } from "../types/socket";
-import { LiveBadge } from "./LiveBadge";
 
 export type StatusBarProps = {
   lastUpdatedAt: Date | null;
@@ -10,25 +9,40 @@ export type StatusBarProps = {
 };
 
 export function StatusBar(props: StatusBarProps) {
-  const dotClass = props.ok === null ? "bg-zinc-500" : props.ok ? "bg-emerald-400" : "bg-red-400";
+  const apiDotClass = props.ok === null ? "bg-zinc-500" : props.ok ? "bg-emerald-400" : "bg-red-400";
+  const socketDotClass =
+    props.socketState === "connected"
+      ? "bg-emerald-400"
+      : props.socketState === "reconnecting"
+        ? "bg-yellow-400"
+        : "bg-red-400";
+
+  const chip =
+    "inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950/40 px-3 py-1 text-xs text-zinc-300";
 
   return (
-    <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-950/50 px-4 py-3 text-sm shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-zinc-300">
-          <span className={`h-2 w-2 rounded-full ${dotClass}`} />
-          <span className="text-zinc-400">API:</span>
-          <span className="font-mono text-xs">{API_ORIGIN}</span>
-        </div>
+    <div className="mt-4 flex flex-wrap items-center gap-2">
+      <span className={chip}>
+        <span className={`h-2 w-2 rounded-full ${apiDotClass}`} />
+        <span className="text-zinc-400">API</span>
+        <span className="font-mono">{API_ORIGIN}</span>
+      </span>
 
-        <div className="flex items-center gap-3 text-xs text-zinc-400">
-          <LiveBadge state={props.socketState ?? "disconnected"} />
-          <span className="text-zinc-600">|</span>
-          <span>{props.loading ? "Syncing..." : "Idle"}</span>
-          <span className="text-zinc-600">|</span>
-          <span>Last updated: {props.lastUpdatedAt ? props.lastUpdatedAt.toLocaleTimeString() : "-"}</span>
-        </div>
-      </div>
+      <span className={chip}>
+        <span className={`h-2 w-2 rounded-full ${socketDotClass}`} />
+        <span className="text-zinc-400">Socket</span>
+        <span className="capitalize">{props.socketState ?? "disconnected"}</span>
+      </span>
+
+      <span className={chip}>
+        <span className="text-zinc-400">Sync</span>
+        <span>{props.loading ? "Syncing..." : "Idle"}</span>
+      </span>
+
+      <span className={chip}>
+        <span className="text-zinc-400">Updated</span>
+        <span>{props.lastUpdatedAt ? props.lastUpdatedAt.toLocaleTimeString() : "—"}</span>
+      </span>
     </div>
   );
 }
