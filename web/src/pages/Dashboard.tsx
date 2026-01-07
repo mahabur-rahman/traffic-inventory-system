@@ -28,6 +28,7 @@ export function Dashboard() {
 
   const flashTimers = useRef<Record<string, number>>({});
   const expiredNotified = useRef<Record<string, boolean>>({});
+  const inFlight = useRef<Set<string>>(new Set());
 
   const dispatch = useAppDispatch();
   const socketStatus = useAppSelector((s) => s.socket.status);
@@ -80,6 +81,9 @@ export function Dashboard() {
   }
 
   async function reserve(dropId: string) {
+    const key = `reserve:${dropId}`;
+    if (inFlight.current.has(key)) return;
+    inFlight.current.add(key);
     setBusyDropId(dropId);
     try {
       delete expiredNotified.current[dropId];
@@ -87,15 +91,20 @@ export function Dashboard() {
       flashDrop(dropId);
     } finally {
       setBusyDropId(null);
+      inFlight.current.delete(key);
     }
   }
 
   async function purchase(dropId: string) {
+    const key = `purchase:${dropId}`;
+    if (inFlight.current.has(key)) return;
+    inFlight.current.add(key);
     setBusyDropId(dropId);
     try {
       await purchaseMutation.mutateAsync(dropId);
     } finally {
       setBusyDropId(null);
+      inFlight.current.delete(key);
     }
   }
 

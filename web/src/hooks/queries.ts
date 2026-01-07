@@ -118,6 +118,10 @@ export function usePurchaseDropMutation() {
     },
     onError: (err) => {
       notifyError(err);
+      void Promise.all([
+        queryClient.invalidateQueries({ queryKey: dropsKey }),
+        queryClient.invalidateQueries({ queryKey: myReservationsKey })
+      ]);
     }
   });
 }
