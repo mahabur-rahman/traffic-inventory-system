@@ -5,7 +5,7 @@ import type { DropsListResponse } from "../types/drop";
 import type { MyReservation } from "../types/reservation";
 import { notifyInfo } from "../lib/notify";
 import { normalizeError } from "../lib/errors";
-import { useSocket } from "../hooks/useSocket";
+import { useSocket } from "../realtime/SocketProvider";
 import {
   dropsKey,
   myReservationsKey,
@@ -157,30 +157,53 @@ export function Dashboard() {
     };
 
     const onExpired = (payload: { dropId: string; reservationId: string }) => {
-      queryClient.setQueryData(myReservationsKey, (prev: any) => {
-        const items = Array.isArray(prev?.items) ? prev.items : [];
-        return { items: items.filter((r: any) => r.id !== payload.reservationId) };
+      const prev = queryClient.getQueryData<any>(myReservationsKey);
+      const items = Array.isArray(prev?.items) ? prev.items : [];
+      const isMine = items.some((r: any) => r.id === payload.reservationId);
+
+      queryClient.setQueryData(myReservationsKey, (p: any) => {
+        const list = Array.isArray(p?.items) ? p.items : [];
+        return { items: list.filter((r: any) => r.id !== payload.reservationId) };
       });
-      notifyInfo("Reservation expired");
+
+      if (isMine) {
+        notifyInfo("Reservation expired");
+      }
     };
 
     const onDropCreated = (_payload: { drop: unknown }) => {
       void refresh();
     };
 
+    const onPurchaseCompleted = (_payload: { dropId: string; username: string | null; purchasedAt: string }) => {
+      // Purchaser list is updated via ACTIVITY_UPDATED; this marks activity without refetch.
+      void queryClient.invalidateQueries({ queryKey: dropsKey });
+    };
+
     socket.on("STOCK_UPDATED", onStock);
     socket.on("ACTIVITY_UPDATED", onActivity);
     socket.on("RESERVATION_EXPIRED", onExpired);
+    socket.on("PURCHASE_COMPLETED", onPurchaseCompleted);
     socket.on("DROP_CREATED", onDropCreated);
 
     return () => {
       socket.off("STOCK_UPDATED", onStock);
       socket.off("ACTIVITY_UPDATED", onActivity);
       socket.off("RESERVATION_EXPIRED", onExpired);
+      socket.off("PURCHASE_COMPLETED", onPurchaseCompleted);
       socket.off("DROP_CREATED", onDropCreated);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);
+
+  useEffect(() => {
+    if (connectionState === "connected") return;
+    const interval = window.setInterval(() => {
+      void refresh();
+    }, 12_000);
+    return () => window.clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectionState]);
 
   const showSkeletons = dropsQuery.isLoading && items.length === 0;
 
