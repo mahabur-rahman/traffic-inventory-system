@@ -109,6 +109,7 @@ export function Dashboard() {
       if (expiresAt <= now.getTime() && !expiredNotified.current[dropId]) {
         expiredNotified.current[dropId] = true;
         notifyInfo("Reservation expired");
+        void queryClient.invalidateQueries({ queryKey: myReservationsKey });
       }
     }
   }, [now]);

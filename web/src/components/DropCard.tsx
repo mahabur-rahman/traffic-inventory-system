@@ -1,5 +1,4 @@
 import type { Drop } from "../types/drop";
-import { notifyError, notifySuccess } from "../lib/notify";
 import type { MyReservation } from "../types/reservation";
 import { formatRelativeTime } from "../lib/time";
 
@@ -82,10 +81,7 @@ export function DropCard(props: DropCardProps) {
           onClick={async () => {
             try {
               await props.onReserve(d.id);
-              notifySuccess("Reserved");
-            } catch (err) {
-              notifyError(err);
-            }
+            } catch {}
           }}
         >
           {props.busy ? "Reserving..." : hasActiveReservation ? "Reserved" : "Reserve"}
@@ -98,10 +94,7 @@ export function DropCard(props: DropCardProps) {
             onClick={async () => {
               try {
                 await props.onPurchase(d.id);
-                notifySuccess("Purchased");
-              } catch (err) {
-                notifyError(err);
-              }
+              } catch {}
             }}
           >
             {props.busy ? "Purchasing..." : "Purchase"}
