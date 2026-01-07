@@ -15,7 +15,8 @@ npm run dev
 
 Environment:
 
-- `VITE_API_URL` (example: `http://localhost:4000`)
+- `VITE_API_URL` (example: `http://localhost:4000/api`)
+- `VITE_SOCKET_URL` (example: `http://localhost:4000`)
 
 ## Loom demo script (2 minutes)
 
