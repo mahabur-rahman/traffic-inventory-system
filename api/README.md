@@ -12,22 +12,40 @@ api/
     db/
       migrations/
         0001-create-users.ts
+        0002-create-drops-reservations-purchases.ts
       sequelize.ts
       umzug.ts
     middlewares/
+      auth.ts
       errorHandler.ts
+      httpLogger.ts
       notFound.ts
+      requestContext.ts
+      validate.ts
     models/
-      index.ts
+      Drop.ts
+      Purchase.ts
+      Reservation.ts
       User.ts
+      index.ts
     routes/
+      demo.routes.ts
       health.routes.ts
+      me.routes.ts
       index.ts
     scripts/
       migrate.ts
+    types/
+      express.d.ts
+    utils/
+      apiError.ts
+      asyncHandler.ts
+      respond.ts
     app.ts
+    logger.ts
     server.ts
   .env.example
+  nodemon.json
   package.json
   tsconfig.json
 ```
@@ -51,9 +69,36 @@ cd api
 npm run db:migrate
 ```
 
+## Postgres schema (users, drops, reservations, purchases)
+
+Implemented via migrations:
+
+- `api/src/db/migrations/0001-create-users.ts:1`
+- `api/src/db/migrations/0002-create-drops-reservations-purchases.ts:1`
+
+### Tables
+
+- `users`: people in the system (`id`, `email`, timestamps)
+- `drops`: sellable/available “drop” created by a user (`created_by -> users.id`)
+- `reservations`: a user reserves quantity from a drop (`user_id -> users.id`, `drop_id -> drops.id`)
+- `purchases`: a user purchase for a drop, optionally tied to a reservation (`reservation_id -> reservations.id`)
+
+### Relationships
+
+- `users (1) -> (many) drops` via `drops.created_by`
+- `users (1) -> (many) reservations` via `reservations.user_id`
+- `drops (1) -> (many) reservations` via `reservations.drop_id`
+- `users (1) -> (many) purchases` via `purchases.user_id`
+- `drops (1) -> (many) purchases` via `purchases.drop_id`
+- `reservations (0..1) <-> (0..1) purchases` via `purchases.reservation_id` (unique, nullable)
+
+Models + associations:
+
+- `api/src/models/index.ts:1`
+
 ## Endpoints
 
-- `GET /health` (includes a quick DB auth check)
+- `GET /api/v1/health` (includes a quick DB auth check)
 
 ## API conventions
 
@@ -142,7 +187,7 @@ Pattern:
 - For any `async (req, res) => { ... }` route handler: `router.get("/x", asyncHandler(handler))`
 - For any `async` middleware in `app.use(...)`: `app.use(asyncHandler(middleware))`
 
-Concurrency note: if you start background work (e.g. `Promise.all(...)`), always `await` it or catch errors; otherwise you’ll get `unhandledRejection` that bypasses Express.
+Concurrency note: if you start background work (e.g. `Promise.all(...)`), always `await` it or catch errors; otherwise you'll get `unhandledRejection` that bypasses Express.
 
 ## Logging + correlation (request-id)
 
@@ -156,3 +201,4 @@ Best practices:
 - Clients may send `X-Request-Id`; server will echo it back, otherwise it generates one.
 - Always include `meta.requestId` in responses for debugging.
 - Avoid logging secrets; logger redacts common sensitive fields (see `api/src/logger.ts:1`).
+
