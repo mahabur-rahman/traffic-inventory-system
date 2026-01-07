@@ -119,6 +119,7 @@ DB-level protections (recommended):
 - `POST /api/v1/drops`
 - `GET /api/v1/drops`
 - `POST /api/v1/drops/:dropId/reserve`
+- `POST /api/v1/drops/:dropId/purchase`
 - `GET /api/v1/reservations/me`
 
 ## Drops API
@@ -236,6 +237,34 @@ Idempotency suggestion (optional):
 ### GET `/api/v1/reservations/me`
 
 Auth required. Lists the user’s active (non-expired) reservations (for testing).
+
+## Purchase API (only if reserved)
+
+### POST `/api/v1/drops/:dropId/purchase`
+
+Auth required (`X-User-Id`). Requires **an ACTIVE, unexpired reservation** for that user+drop.
+
+Transaction logic:
+
+- `SELECT ... FOR UPDATE` on the reservation row (prevents double purchase)
+- Validate `status='active'` and `expires_at > now()`
+- Mark reservation `status='consumed'`
+- Insert purchase row (`qty=1`, `status='paid'`)
+- Do **not** decrement `drops.available_stock` again (it was decremented during reserve)
+
+Implementation:
+
+- Route: `api/src/routes/purchases.routes.ts:1`
+- Service: `api/src/services/purchases.service.ts:1`
+
+Errors:
+
+- `401 AUTH_REQUIRED`
+- `409 RESERVATION_REQUIRED`
+- `409 RESERVATION_EXPIRED`
+- `409 RESERVATION_NOT_ACTIVE`
+- `409 RESERVATION_CONFLICT`
+- `409 ALREADY_PURCHASED`
 
 ## Reservation expiration & stock recovery
 
