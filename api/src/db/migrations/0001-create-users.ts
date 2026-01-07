@@ -8,20 +8,20 @@ export async function up({ context }: { context: QueryInterface }) {
       primaryKey: true,
       allowNull: false
     },
-    email: {
-      type: DataTypes.STRING(255),
+    username: {
+      type: DataTypes.STRING(50),
       allowNull: false,
       unique: true
     },
-    created_at: {
+    createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: (context as any).sequelize.literal("NOW()")
+      defaultValue: DataTypes.NOW
     },
-    updated_at: {
+    updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: (context as any).sequelize.literal("NOW()")
+      defaultValue: DataTypes.NOW
     }
   });
 }

@@ -78,7 +78,7 @@ Implemented via migrations:
 
 ### Tables
 
-- `users`: people in the system (`id`, `email`, timestamps)
+- `users`: people in the system (`id`, `username`, timestamps)
 - `drops`: sellable/available “drop” created by a user (`created_by -> users.id`)
 - `reservations`: a user reserves quantity from a drop (`user_id -> users.id`, `drop_id -> drops.id`)
 - `purchases`: a user purchase for a drop, optionally tied to a reservation (`reservation_id -> reservations.id`)
@@ -201,4 +201,3 @@ Best practices:
 - Clients may send `X-Request-Id`; server will echo it back, otherwise it generates one.
 - Always include `meta.requestId` in responses for debugging.
 - Avoid logging secrets; logger redacts common sensitive fields (see `api/src/logger.ts:1`).
-

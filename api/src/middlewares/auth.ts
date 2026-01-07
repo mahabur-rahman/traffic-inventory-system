@@ -30,8 +30,8 @@ export const loadUser: RequestHandler = async (req: Request, res: Response, next
     const { User } = getModels();
     const record = await User.findByPk(parsed.data);
     if (record) {
-      const email = record.get("email") as string | null | undefined;
-      req.user = { id: parsed.data, email: email ?? null };
+      const username = record.get("username") as string | null | undefined;
+      req.user = { id: parsed.data, username: username ?? null };
     }
   } catch {
     // Placeholder auth: ignore DB lookup failures (e.g., migrations not run yet).
@@ -52,4 +52,3 @@ export function requireUser(req: Request, res: Response, next: NextFunction) {
   }
   return next();
 }
-

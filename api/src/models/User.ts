@@ -12,16 +12,15 @@ export function defineUser(
         defaultValue: dataTypes.UUIDV4,
         primaryKey: true
       },
-      email: {
-        type: dataTypes.STRING(255),
+      username: {
+        type: dataTypes.STRING(50),
         allowNull: false,
-        unique: true,
-        validate: { isEmail: true }
+        unique: true
       }
     },
     {
       tableName: "users",
-      underscored: true,
+      underscored: false,
       timestamps: true
     }
   );
