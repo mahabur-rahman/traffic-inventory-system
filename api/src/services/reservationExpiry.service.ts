@@ -87,7 +87,8 @@ export async function expireReservationsOnce(params?: { limit?: number }) {
       {
         transaction,
         replacements: { limit },
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
+        logging: false
       }
     )) as Array<{ expired_count: number; updated_drops: unknown; expired_reservations: unknown }>;
 

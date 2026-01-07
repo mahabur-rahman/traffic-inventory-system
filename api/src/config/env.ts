@@ -22,6 +22,7 @@ export const env = {
   port: toInt(process.env.PORT, 4000),
   databaseUrl: process.env.DATABASE_URL,
   dbSsl: toBool(process.env.DB_SSL, true),
+  dbLogging: toBool(process.env.DB_LOGGING, false),
   corsOrigins: (process.env.CORS_ORIGINS || "*")
     .split(",")
     .map((s) => s.trim())

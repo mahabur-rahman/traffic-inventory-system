@@ -14,7 +14,7 @@ export function getSequelize() {
 
   sequelize = new Sequelize(env.databaseUrl, {
     dialect: "postgres",
-    logging: env.nodeEnv === "development" ? console.log : false,
+    logging: env.dbLogging ? console.log : false,
     dialectOptions: env.dbSsl
       ? { ssl: { require: true, rejectUnauthorized: false } }
       : undefined,
@@ -29,4 +29,3 @@ export async function connectDB() {
   await instance.authenticate();
   return instance;
 }
-
