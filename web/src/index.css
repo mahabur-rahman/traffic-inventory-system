@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+* {
+  margin: o;
+  padding: 0;
+  box-sizing: border-box;
+  outline: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
