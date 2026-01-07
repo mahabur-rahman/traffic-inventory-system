@@ -143,3 +143,16 @@ Pattern:
 - For any `async` middleware in `app.use(...)`: `app.use(asyncHandler(middleware))`
 
 Concurrency note: if you start background work (e.g. `Promise.all(...)`), always `await` it or catch errors; otherwise you’ll get `unhandledRejection` that bypasses Express.
+
+## Logging + correlation (request-id)
+
+This API uses structured logging with Pino and correlates requests via `X-Request-Id`.
+
+- HTTP logger: `api/src/middlewares/httpLogger.ts:1` (Pino request logs)
+- Context: `api/src/middlewares/requestContext.ts:1` (sets `res.locals.requestId` used by response `meta.requestId`)
+
+Best practices:
+
+- Clients may send `X-Request-Id`; server will echo it back, otherwise it generates one.
+- Always include `meta.requestId` in responses for debugging.
+- Avoid logging secrets; logger redacts common sensitive fields (see `api/src/logger.ts:1`).
