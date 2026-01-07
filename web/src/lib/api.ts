@@ -29,7 +29,12 @@ export async function apiRequest<T>(
     }
   }
 
-  const res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+  } catch {
+    throw new ApiError({ code: "NETWORK_ERROR", status: 0, message: "Network error. Is the API running?" });
+  }
   const text = await res.text();
   const json = text ? safeJsonParse(text) : null;
 
