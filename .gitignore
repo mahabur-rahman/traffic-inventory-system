@@ -1,2 +1,9 @@
 node_modules/
 .env
+
+# Ignore env files anywhere (keep examples)
+**/.env
+.env.*
+**/.env.*
+!.env.example
+!**/.env.example

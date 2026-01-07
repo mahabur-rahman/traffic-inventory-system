@@ -17,6 +17,7 @@ export function normalizeUiErrorCode(code: string): UiErrorCode {
   if (code === "VALIDATION_ERROR") return "VALIDATION_ERROR";
   if (code === "AUTH_REQUIRED") return "UNAUTHORIZED";
   if (code === "INVALID_X_USER_ID") return "UNAUTHORIZED";
+  if (code === "RESERVATION_REQUIRED") return "CONFLICT";
   if (code === "CONFLICT") return "CONFLICT";
   if (code === "ALREADY_RESERVED") return "CONFLICT";
   if (code === "RESERVATION_CONFLICT") return "CONFLICT";
