@@ -1,5 +1,51 @@
 # React + TypeScript + Vite
 
+## Techzu Sneaker Drop Dashboard (MVP)
+
+### Run
+
+1) Create `web/.env` from `web/.env.example`
+2) Start web:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Environment:
+
+- `VITE_API_URL` (example: `http://localhost:4000`)
+
+### Wireframe (function over form)
+
+```
+Top Bar
+  - App title (left)
+  - Auth status + Sign out (right)
+
+Main
+  - If not signed in:
+      - Login card (username input + continue)
+  - If signed in:
+      - Info banner (auth simulation note)
+      - Active drops grid (cards)
+          - name + price
+          - live stock number (big)
+          - status
+          - latest 3 purchasers (username + time)
+```
+
+### Suggested folder structure
+
+```
+web/src/
+  components/    # UI blocks
+  hooks/         # reusable hooks (auth, sockets, etc)
+  lib/           # api client, env, helpers
+  types/         # shared TS types (API, entities)
+```
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
