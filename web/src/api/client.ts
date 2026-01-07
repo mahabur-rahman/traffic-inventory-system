@@ -24,8 +24,34 @@ api.interceptors.request.use((config) => {
     if (username) (config.headers as any)["X-User-Name"] = username;
   }
 
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.debug(
+      "[api] request",
+      config.method?.toUpperCase(),
+      `${config.baseURL ?? ""}${config.url ?? ""}`
+    );
+  }
+
   return config;
 });
+
+api.interceptors.response.use(
+  (res) => {
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.debug("[api] response", res.status, res.config.method?.toUpperCase(), res.config.url);
+    }
+    return res;
+  },
+  (err) => {
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.debug("[api] error", err?.response?.status ?? 0, err?.config?.method?.toUpperCase(), err?.config?.url);
+    }
+    return Promise.reject(err);
+  }
+);
 
 export async function apiGet<T>(path: string): Promise<T> {
   try {
@@ -48,4 +74,3 @@ export async function apiPost<T>(path: string): Promise<T> {
     throw toApiError(err);
   }
 }
-

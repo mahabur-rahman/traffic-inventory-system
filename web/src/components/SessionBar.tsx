@@ -6,11 +6,16 @@ import { useAuth } from "../hooks/useAuth";
 import { dropsKey, myReservationsKey } from "../hooks/queries";
 import { useAppSelector } from "../store/hooks";
 
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 export function SessionBar() {
   const { login, logout } = useAuth();
   const session = useAppSelector((s) => s.session);
   const queryClient = useQueryClient();
   const [username, setUsername] = useState("");
+  const [userId, setUserId] = useState("");
   const [busy, setBusy] = useState(false);
 
   const isAuthed = Boolean(session.userId && session.username);
@@ -19,9 +24,14 @@ export function SessionBar() {
     e.preventDefault();
     setBusy(true);
     try {
-      login(username);
+      const maybeId = userId.trim();
+      if (maybeId && !isUuid(maybeId)) {
+        throw new Error("User ID must be a UUID");
+      }
+      login(username, maybeId || undefined);
       toast.success("Signed in");
       setUsername("");
+      setUserId("");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: dropsKey }),
         queryClient.invalidateQueries({ queryKey: myReservationsKey })
@@ -42,6 +52,13 @@ export function SessionBar() {
             placeholder="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            disabled={busy}
+          />
+          <input
+            className="hidden w-64 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-600 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 md:block"
+            placeholder="user id (optional UUID)"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
             disabled={busy}
           />
           <button
@@ -76,4 +93,3 @@ export function SessionBar() {
     </div>
   );
 }
-

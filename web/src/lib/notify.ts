@@ -30,6 +30,7 @@ export function notifyError(err: unknown) {
   if (uiCode === "DROP_NOT_ACTIVE") return notifyWarning(message);
   if (uiCode === "CONFLICT") return notifyWarning("Someone else reserved it first");
   if (uiCode === "VALIDATION_ERROR") return toast.error(message, { style: baseStyle });
+  if (uiCode === "UNAUTHORIZED") return notifyInfo("Sign in to continue");
   if (uiCode === "NETWORK_ERROR") return toast.error(message, { style: baseStyle });
 
   if (e.code === "RESERVATION_EXPIRED") return notifyInfo(message);

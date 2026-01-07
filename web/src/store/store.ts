@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import { getAuth } from "../lib/auth";
+import { clearAuth, getAuth, setAuth } from "../lib/auth";
 
 import { sessionReducer } from "./sessionSlice";
 import { socketReducer } from "./socketSlice";
@@ -25,3 +25,17 @@ export const store = configureStore({
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+// Persist session slice to localStorage
+let lastSession = store.getState().session;
+store.subscribe(() => {
+  const next = store.getState().session;
+  if (next.userId === lastSession.userId && next.username === lastSession.username) return;
+
+  lastSession = next;
+  if (next.userId && next.username) {
+    setAuth({ userId: next.userId, username: next.username });
+  } else {
+    clearAuth();
+  }
+});

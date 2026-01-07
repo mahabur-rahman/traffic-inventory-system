@@ -14,9 +14,14 @@ export function getDrops() {
   return apiGet<DropsListResponse>("/drops");
 }
 
+// Prompt aliases
+export const fetchDrops = getDrops;
+
 export function getMyReservations() {
   return apiGet<ReservationsMeResponse>("/reservations/me");
 }
+
+export const fetchMyReservations = getMyReservations;
 
 export type ReserveDropResponse = {
   reservation: MyReservation;
@@ -35,4 +40,3 @@ export type PurchaseDropResponse = {
 export function purchaseDrop(dropId: string) {
   return apiPost<PurchaseDropResponse>(`/drops/${dropId}/purchase`);
 }
-

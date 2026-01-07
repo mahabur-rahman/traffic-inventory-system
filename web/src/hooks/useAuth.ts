@@ -29,12 +29,12 @@ export function useAuth() {
     return () => window.removeEventListener("storage", onStorage);
   }, [dispatch]);
 
-  const login = useCallback((username: string) => {
+  const login = useCallback((username: string, userId?: string) => {
     const trimmed = username.trim();
     if (trimmed.length < 3) {
       throw new Error("Username must be at least 3 characters");
     }
-    const next: AuthState = { userId: createUserId(), username: trimmed };
+    const next: AuthState = { userId: userId ?? createUserId(), username: trimmed };
     setAuth(next);
     dispatch(setSession({ userId: next.userId, username: next.username }));
     return next;

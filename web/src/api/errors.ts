@@ -2,12 +2,21 @@ import type { AxiosError } from "axios";
 
 import { ApiError, type ApiEnvelope } from "../types/api";
 
-export type UiErrorCode = "OUT_OF_STOCK" | "CONFLICT" | "DROP_NOT_ACTIVE" | "VALIDATION_ERROR" | "NETWORK_ERROR" | "UNKNOWN_ERROR";
+export type UiErrorCode =
+  | "OUT_OF_STOCK"
+  | "CONFLICT"
+  | "DROP_NOT_ACTIVE"
+  | "VALIDATION_ERROR"
+  | "UNAUTHORIZED"
+  | "NETWORK_ERROR"
+  | "UNKNOWN_ERROR";
 
 export function normalizeUiErrorCode(code: string): UiErrorCode {
   if (code === "OUT_OF_STOCK") return "OUT_OF_STOCK";
   if (code === "DROP_NOT_ACTIVE") return "DROP_NOT_ACTIVE";
   if (code === "VALIDATION_ERROR") return "VALIDATION_ERROR";
+  if (code === "AUTH_REQUIRED") return "UNAUTHORIZED";
+  if (code === "INVALID_X_USER_ID") return "UNAUTHORIZED";
   if (code === "CONFLICT") return "CONFLICT";
   if (code === "ALREADY_RESERVED") return "CONFLICT";
   if (code === "RESERVATION_CONFLICT") return "CONFLICT";
@@ -45,4 +54,3 @@ export function toApiError(err: unknown): ApiError {
     message: `Request failed (${status})`
   });
 }
-

@@ -8,7 +8,7 @@ export function createQueryClient() {
       queries: {
         staleTime: 5_000,
         retry: (failureCount, error) => {
-          if (failureCount >= 2) return false;
+          if (failureCount >= 1) return false; // retry 1 time
           if (error instanceof ApiError) return error.code === "NETWORK_ERROR";
           return false;
         },
