@@ -2,9 +2,12 @@ import { useAuth } from "./hooks/useAuth";
 import { LoginCard } from "./components/LoginCard";
 import { Dashboard } from "./pages/Dashboard";
 import { SessionBar } from "./components/SessionBar";
+import { LiveBadge } from "./components/LiveBadge";
+import { useAppSelector } from "./store/hooks";
 
 function App() {
   const { isAuthed } = useAuth();
+  const socketStatus = useAppSelector((s) => s.socket.status);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -15,7 +18,11 @@ function App() {
             <p className="text-xs text-zinc-400">Dashboard (function over form)</p>
           </div>
 
-          <SessionBar />
+          <div className="flex items-center gap-3 text-xs text-zinc-400">
+            <LiveBadge state={socketStatus} />
+            <span className="text-zinc-700">|</span>
+            <SessionBar />
+          </div>
         </div>
       </header>
 
