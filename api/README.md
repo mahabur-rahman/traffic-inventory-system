@@ -14,6 +14,15 @@ npm run db:migrate
 npm run dev
 ```
 
+## Seeding (mock data)
+
+After migrations, seed mock data into all tables (users/drops/reservations/purchases):
+
+- `npm run db:seed`
+- Reset + seed (dev only): `npm run db:seed:reset`
+
+Seed script: `api/src/scripts/seed.ts:1`
+
 ## Environment
 
 See `api/.env.example:1`.
