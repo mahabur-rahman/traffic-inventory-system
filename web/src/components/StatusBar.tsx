@@ -1,9 +1,11 @@
 import { API_ORIGIN } from "../lib/env";
+import type { SocketConnectionState } from "../types/socket";
 
 export type StatusBarProps = {
   lastUpdatedAt: Date | null;
   loading: boolean;
   ok: boolean | null;
+  socketState?: SocketConnectionState;
 };
 
 export function StatusBar(props: StatusBarProps) {
@@ -12,6 +14,13 @@ export function StatusBar(props: StatusBarProps) {
       ? "bg-zinc-500"
       : props.ok
         ? "bg-emerald-400"
+        : "bg-red-400";
+
+  const socketDot =
+    props.socketState === "connected"
+      ? "bg-emerald-400"
+      : props.socketState === "reconnecting"
+        ? "bg-yellow-400"
         : "bg-red-400";
 
   return (
@@ -24,6 +33,11 @@ export function StatusBar(props: StatusBarProps) {
         </div>
 
         <div className="flex items-center gap-3 text-xs text-zinc-400">
+          <span className="inline-flex items-center gap-2">
+            <span className={`h-2 w-2 rounded-full ${socketDot}`} />
+            <span>Live</span>
+          </span>
+          <span className="text-zinc-600">•</span>
           <span>{props.loading ? "Syncing..." : "Idle"}</span>
           <span className="text-zinc-600">•</span>
           <span>
@@ -35,4 +49,3 @@ export function StatusBar(props: StatusBarProps) {
     </div>
   );
 }
-
