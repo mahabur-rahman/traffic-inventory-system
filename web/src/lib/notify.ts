@@ -1,6 +1,7 @@
 import toast from "react-hot-toast";
 
 import { normalizeError } from "./errors";
+import { normalizeUiErrorCode } from "../api";
 
 const baseStyle: React.CSSProperties = {
   background: "#09090b",
@@ -22,13 +23,17 @@ export function notifyWarning(message: string) {
 
 export function notifyError(err: unknown) {
   const e = normalizeError(err);
+  const uiCode = normalizeUiErrorCode(e.code);
   const message = `${e.title}: ${e.message}`;
 
-  if (e.code === "OUT_OF_STOCK") return notifyWarning("Someone else reserved it first");
-  if (e.code === "DROP_NOT_ACTIVE") return notifyWarning(message);
+  if (uiCode === "OUT_OF_STOCK") return notifyWarning("Someone else reserved it first");
+  if (uiCode === "DROP_NOT_ACTIVE") return notifyWarning(message);
+  if (uiCode === "CONFLICT") return notifyWarning("Someone else reserved it first");
+  if (uiCode === "VALIDATION_ERROR") return toast.error(message, { style: baseStyle });
+  if (uiCode === "NETWORK_ERROR") return toast.error(message, { style: baseStyle });
+
   if (e.code === "RESERVATION_EXPIRED") return notifyInfo(message);
   if (e.code === "ALREADY_RESERVED") return notifyInfo(message);
-  if (e.code === "CONFLICT") return notifyWarning("Someone else reserved it first");
 
   return toast.error(message, { style: baseStyle });
 }

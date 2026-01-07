@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { getDrops, getMyReservations, purchaseDrop, reserveDrop } from "../api/drops";
+import { getDrops, getMyReservations, purchaseDrop, reserveDrop } from "../api";
 import { notifyError, notifySuccess } from "../lib/notify";
 import type { DropsListResponse } from "../types/drop";
 import type { ReservationsMeResponse } from "../types/reservation";

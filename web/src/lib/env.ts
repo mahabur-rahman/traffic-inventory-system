@@ -6,5 +6,6 @@ const RAW_API_URL = stripTrailingSlash(import.meta.env.VITE_API_URL ?? "http://l
 
 export const API_BASE_URL = RAW_API_URL.endsWith("/api") ? RAW_API_URL : `${RAW_API_URL}/api`;
 export const API_ORIGIN = RAW_API_URL.endsWith("/api") ? RAW_API_URL.slice(0, -4) : RAW_API_URL;
+export const API_URL = API_BASE_URL;
 
 export const SOCKET_ORIGIN = stripTrailingSlash(import.meta.env.VITE_SOCKET_URL ?? API_ORIGIN);
