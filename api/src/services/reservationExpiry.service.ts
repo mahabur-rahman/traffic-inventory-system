@@ -11,18 +11,26 @@ export type ExpireResult = {
 
 let schemaReadyCache: boolean | null = null;
 let warnedMissingSchema = false;
+let lastSchemaCheckAt = 0;
+const SCHEMA_CHECK_COOLDOWN_MS = 15000;
 
 async function isSchemaReady() {
   if (schemaReadyCache === true) return true;
 
+  const now = Date.now();
+  if (schemaReadyCache === false && now - lastSchemaCheckAt < SCHEMA_CHECK_COOLDOWN_MS) {
+    return false;
+  }
+  lastSchemaCheckAt = now;
+
   const sequelize = getSequelize();
   const rows = (await sequelize.query(
     `SELECT to_regclass('public.reservations') AS reservations, to_regclass('public.drops') AS drops`,
-    { type: QueryTypes.SELECT }
+    { type: QueryTypes.SELECT, logging: false }
   )) as Array<{ reservations: string | null; drops: string | null }>;
 
   const ready = Boolean(rows[0]?.reservations) && Boolean(rows[0]?.drops);
-  if (ready) schemaReadyCache = true;
+  schemaReadyCache = ready;
 
   return ready;
 }
