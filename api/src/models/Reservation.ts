@@ -20,12 +20,6 @@ export function defineReservation(
         type: dataTypes.UUID,
         allowNull: false
       },
-      quantity: {
-        type: dataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 1,
-        validate: { min: 1 }
-      },
       status: {
         type: dataTypes.STRING(32),
         allowNull: false,
@@ -39,8 +33,9 @@ export function defineReservation(
     {
       tableName: "reservations",
       underscored: true,
-      timestamps: true
+      timestamps: true,
+      createdAt: "createdAt",
+      updatedAt: "updatedAt"
     }
   );
 }
-

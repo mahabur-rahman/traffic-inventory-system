@@ -75,12 +75,13 @@ Implemented via migrations:
 
 - `api/src/db/migrations/0001-create-users.ts:1`
 - `api/src/db/migrations/0002-create-drops-reservations-purchases.ts:1`
+- `api/src/db/migrations/0004-update-reservations-expiry-indexes.ts:1`
 
 ### Tables
 
 - `users`: people in the system (`id`, `username`, timestamps)
 - `drops`: sellable/available “drop” created by a user (`created_by -> users.id`)
-- `reservations`: a user reserves quantity from a drop (`user_id -> users.id`, `drop_id -> drops.id`)
+- `reservations`: reservation record (`drop_id`, `user_id`, `status`, `expires_at`, `createdAt`, `updatedAt`)
 - `purchases`: a user purchase for a drop, optionally tied to a reservation (`reservation_id -> reservations.id`)
 
 ### Relationships
