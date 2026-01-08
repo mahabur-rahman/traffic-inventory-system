@@ -6,30 +6,19 @@ import { FiLogIn } from "react-icons/fi";
 import { useAuth } from "../hooks/useAuth";
 import { Spinner } from "./Spinner";
 
-function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
-
 export function LoginCard() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
-  const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      const maybeId = userId.trim();
-      if (maybeId && !isUuid(maybeId)) {
-        throw new Error("User ID must be a UUID");
-      }
-
-      login(username, maybeId || undefined);
+      login(username);
       toast.success("Signed in");
       setUsername("");
-      setUserId("");
       navigate("/dashboard", { replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to sign in");
@@ -47,7 +36,7 @@ export function LoginCard() {
         <h2 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">Sign in</h2>
       </div>
       <p className="mt-2 text-base leading-relaxed text-zinc-400">
-        Enter a username to continue. Optionally provide a User ID to simulate multiple users across tabs.
+        Enter a username to continue.
       </p>
 
       <form className="mt-8 space-y-6" onSubmit={onSubmit}>
@@ -63,17 +52,6 @@ export function LoginCard() {
             disabled={loading}
             autoComplete="username"
             autoFocus
-          />
-        </label>
-
-        <label className="block space-y-2">
-          <div className="text-sm font-semibold text-zinc-200">User ID (optional UUID)</div>
-          <input
-            className="w-full rounded-2xl border border-zinc-800 bg-zinc-950/60 px-5 py-4 font-mono text-lg text-zinc-100 placeholder:text-zinc-600 shadow-sm ring-1 ring-transparent transition focus:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-xl"
-            placeholder="e.g. 2f1e2b9d-8a9d-4b77-9c4f-0b21d0b2f0c1"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            disabled={loading}
           />
         </label>
 
