@@ -14,6 +14,8 @@ npm run dev
 ```
 
 Web URL: `http://localhost:5173`
+- Login: `/`
+- Dashboard: `/dashboard` (protected route)
 
 ## Environment
 
@@ -22,23 +24,22 @@ Web URL: `http://localhost:5173`
 
 ## How It Works
 
+- Routing: `react-router-dom` (redirect to `/dashboard` after login; unauthenticated users are redirected back to `/`)
 - Data fetching: TanStack Query (`GET /api/drops`, `GET /api/reservations/me`)
-- Mutations: reserve + purchase (shows loading state and toast feedback)
-- Drop creation: optional "Create Drop (API)" panel calls `POST /api/drops`
+- Mutations: reserve + purchase + cancel reservation + create drop
 - State: Redux Toolkit for session + socket connection status
 - Real-time: Socket.IO events update the React Query cache (no full refetch for stock/activity)
 
 ## 2-minute Demo Script (Two Windows)
 
-1) Start API:
+1) Terminal:
    - `cd api && npm run db:migrate`
    - `cd api && npm run db:seed:reset`
    - `cd api && npm run dev`
-2) Start web:
+2) Terminal:
    - `cd web && npm run dev`
-3) Open 2 browser windows at `http://localhost:5173`
-4) Sign in on both windows
-5) Reserve in window A -> window B stock updates instantly
-6) Try last-stock concurrency -> only one succeeds (toast shows conflict)
-7) Wait ~60s -> reservation expires and stock recovers
-8) Reserve + Purchase -> “Latest purchasers” updates (top 3 per drop)
+3) Open 2 windows at `http://localhost:5173`, sign in on both (redirects to `/dashboard`)
+4) Reserve in window A -> window B stock updates instantly
+5) Try last-stock concurrency -> only one succeeds (toast shows conflict)
+6) Wait ~60s -> reservation expires and stock recovers
+7) Reserve + Purchase -> “Latest purchasers” updates (top 3 per drop)

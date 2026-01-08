@@ -3,13 +3,6 @@
 Backend: Node.js + Express + Sequelize + Postgres + Socket.IO  
 Frontend: React (Vite) + TypeScript + TailwindCSS + Redux Toolkit + TanStack Query + Socket.IO client
 
-Implements the assessment requirements:
-- Real-time dashboard with live stock updates across tabs
-- Atomic reservation (no oversell) with 60s TTL
-- Automatic stock recovery on expiry + socket broadcasts
-- Purchase flow (only if you reserved)
-- Drop creation API (no admin UI) + per-drop activity feed (top 3 recent purchasers)
-
 ## Quick Start (Local)
 
 ### 1) API
@@ -23,7 +16,7 @@ npm run db:seed:reset   # optional (recommended for demo data)
 npm run dev
 ```
 
-API runs at `http://localhost:4000` (REST under `/api/*`).
+API: `http://localhost:4000` (REST under `/api/*`)
 
 ### 2) Web
 
@@ -34,14 +27,14 @@ cp .env.example .env
 npm run dev
 ```
 
-Web runs at `http://localhost:5173`.
+Web: `http://localhost:5173` (login at `/`, dashboard at `/dashboard`)
 
 ## Environment Variables
 
 Never commit real credentials. Use `.env.example` as the template.
 
 **API** (`api/.env`)
-- `DATABASE_URL` (Postgres connection string)
+- `DATABASE_URL`
 - `PORT` (default `4000`)
 - `CORS_ORIGINS` (default `*`)
 - `RESERVATION_TTL_SECONDS` (default `60`)
@@ -51,30 +44,30 @@ Never commit real credentials. Use `.env.example` as the template.
 - `VITE_API_URL` (example: `http://localhost:4000/api`)
 - `VITE_SOCKET_URL` (example: `http://localhost:4000`)
 
-## Notes
+## Architecture Notes
 
-- Prices are stored as integer cents in Postgres (`drops.price`).
-- Auth is intentionally lightweight for the assessment: web sends `X-User-Id` and `X-User-Name` headers.
+### Concurrency / Oversell Prevention
 
-## Architecture (Summary)
-
-### Oversell prevention (atomic reserve)
-
-Reservations decrement stock with a single atomic SQL statement:
+Reserve is an atomic Postgres update:
 `UPDATE drops SET available_stock = available_stock - 1 WHERE id = ? AND available_stock > 0 RETURNING ...`
 
-Only one concurrent request can claim the last unit; others receive `409 OUT_OF_STOCK/CONFLICT`.
+Only one concurrent request can claim the last unit; others return `409 OUT_OF_STOCK/CONFLICT`.
 
-### Expiration + stock recovery (60s TTL)
+### Reservation Expiration (60s TTL) + Stock Recovery
 
 An in-process worker polls every `EXPIRY_POLL_MS`:
 - marks expired `ACTIVE` reservations as `EXPIRED`
 - restores stock on affected drops
-- emits Socket.IO events after the DB commit
+- emits Socket.IO events after DB commit
 
-On boot, the worker runs one cleanup pass to recover from server restarts.
+On boot, the worker runs a cleanup pass to recover after restarts.
 
-### Real-time sync (Socket.IO)
+### Purchase Flow
+
+Users can only purchase if they have an ACTIVE, unexpired reservation for that drop.
+Stock is decremented at reserve time; purchase consumes the reservation so it won’t be restored.
+
+### Real-Time Sync (Socket.IO)
 
 Server emits after DB commit:
 - `STOCK_UPDATED` (reserve/cancel/expiry)
@@ -83,19 +76,19 @@ Server emits after DB commit:
 - `ACTIVITY_UPDATED`
 - `DROP_CREATED`
 
-Frontend uses TanStack Query as the source of truth and applies socket events via cache updates (no full refetch for stock/activity).
+Frontend uses TanStack Query as the source of truth and applies socket events via cache updates.
 
 ## Loom Demo Checklist (2 minutes)
 
 1) Start API + Web (see Quick Start)
-2) Open **two browser windows** side-by-side at `http://localhost:5173`
-3) Sign in on both
+2) Open **two browser windows** at `http://localhost:5173`
+3) Sign in on both (redirects to `/dashboard`)
 4) Reserve in window A -> stock updates instantly in window B
-5) Click Reserve quickly in both windows on last stock -> only one succeeds (toast shows concurrency)
+5) Click Reserve quickly in both windows on last stock -> only one succeeds
 6) Wait ~60s -> reservation expires, stock recovers (both windows update)
 7) Reserve + Purchase -> activity feed (top 3 purchasers) updates on each drop card
 
-Tip: You can create new drops via the API (`POST /api/drops`) or from the web app’s optional “Create Drop (API)” panel.
+Tip: Create new drops via `POST /api/drops` or the web app’s **Create drop** modal.
 
 ## Production Build
 
