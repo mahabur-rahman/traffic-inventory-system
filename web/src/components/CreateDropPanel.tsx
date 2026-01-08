@@ -5,7 +5,7 @@ import { useCreateDropMutation } from "../hooks/queries";
 
 function inputClassName(disabled?: boolean) {
   return [
-    "w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 shadow-sm",
+    "w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-base text-zinc-100 shadow-sm",
     "placeholder:text-zinc-600",
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200",
     disabled ? "opacity-60" : ""
@@ -13,7 +13,7 @@ function inputClassName(disabled?: boolean) {
 }
 
 function labelClassName() {
-  return "text-xs font-semibold text-zinc-300";
+  return "text-sm font-semibold text-zinc-200";
 }
 
 function toCentsFromDollarsString(value: string) {
@@ -60,15 +60,15 @@ export function CreateDropPanel() {
   }, [priceDollars, currency]);
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-4 shadow-sm">
+    <section className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-5 shadow-sm">
       <button
         className="flex w-full items-center justify-between gap-3 text-left"
         onClick={() => setOpen((v) => !v)}
         type="button"
       >
         <div className="min-w-0">
-          <div className="text-sm font-semibold text-zinc-100">Create Drop (API)</div>
-          <div className="mt-0.5 text-xs text-zinc-400">
+          <div className="text-base font-semibold text-zinc-100">Create Drop (API)</div>
+          <div className="mt-1 text-sm text-zinc-400">
             Optional demo tool; creates a new drop via <span className="font-mono">POST /api/drops</span>.
           </div>
         </div>
@@ -79,7 +79,7 @@ export function CreateDropPanel() {
 
       {open && (
         <form
-          className="mt-4 grid gap-4 md:grid-cols-2"
+          className="mt-5 grid gap-5 md:grid-cols-2"
           onSubmit={async (e) => {
             e.preventDefault();
             try {
@@ -201,7 +201,7 @@ export function CreateDropPanel() {
               New drops broadcast to all clients via <span className="font-mono">DROP_CREATED</span>.
             </div>
             <button
-              className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-zinc-900 shadow-sm hover:bg-zinc-200 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+              className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-base font-semibold text-zinc-900 shadow-sm hover:bg-zinc-200 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
               disabled={disabled}
               type="submit"
             >
@@ -213,4 +213,3 @@ export function CreateDropPanel() {
     </section>
   );
 }
-

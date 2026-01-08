@@ -75,20 +75,20 @@ export function DropCard(props: DropCardProps) {
   return (
     <div
       className={[
-        "rounded-2xl border bg-zinc-950/45 p-5 shadow-sm transition-colors hover:bg-zinc-950/70",
+        "rounded-3xl border bg-zinc-950/45 p-6 shadow-sm transition-colors hover:bg-zinc-950/70",
         props.stockFlash ? "border-emerald-500/60 shadow-emerald-500/10" : "border-zinc-800 hover:border-zinc-700"
       ].join(" ")}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="truncate text-base font-semibold tracking-tight">{d.name}</div>
+            <div className="truncate text-lg font-semibold tracking-tight">{d.name}</div>
             <span className={`inline-flex items-center gap-2 rounded-full border px-2 py-0.5 text-xs ${status.bg} ${status.border} ${status.text}`}>
               <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
               <span className="capitalize">{d.status}</span>
             </span>
           </div>
-          <div className="mt-1 text-sm text-zinc-400">
+          <div className="mt-1 text-base text-zinc-400">
             Price <span className="text-zinc-200">{formatMoneyFromCents(d.price, d.currency ?? "USD")}</span>
             <span className="mx-2 text-zinc-700">•</span>
             Total <span className="tabular-nums text-zinc-200">{d.total_stock}</span>
@@ -96,7 +96,7 @@ export function DropCard(props: DropCardProps) {
         </div>
 
         <div className="shrink-0 text-right">
-          <div className="text-xs text-zinc-400">Available</div>
+          <div className="text-sm text-zinc-400">Available</div>
           <div
             className={[
               "mt-1 inline-flex min-w-16 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-3xl font-bold tabular-nums shadow-sm",
@@ -108,7 +108,7 @@ export function DropCard(props: DropCardProps) {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-400">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-400">
         {hasActiveReservation && reservationMs !== null ? (
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-emerald-200">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -125,7 +125,7 @@ export function DropCard(props: DropCardProps) {
         {!hasActiveReservation ? (
           <button
             className={[
-              "inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200",
+              "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-base font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200",
               canReserve && !props.busy ? "bg-white text-zinc-900 hover:bg-zinc-200" : "bg-zinc-800 text-zinc-200"
             ].join(" ")}
             style={{ gridColumn: "1 / -1" }}
@@ -142,7 +142,7 @@ export function DropCard(props: DropCardProps) {
         ) : (
           <>
             <button
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-3 py-2 text-sm font-semibold text-emerald-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-200"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3 text-base font-semibold text-emerald-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-200"
               disabled={props.busy}
               onClick={async () => {
                 try {
@@ -155,7 +155,7 @@ export function DropCard(props: DropCardProps) {
             </button>
 
             <button
-              className="inline-flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-semibold text-zinc-200 shadow-sm hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+              className="inline-flex items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-base font-semibold text-zinc-200 shadow-sm hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
               disabled={props.busy || !props.onCancel || !reservation?.id}
               onClick={async () => {
                 if (!reservation?.id) return;
@@ -171,11 +171,11 @@ export function DropCard(props: DropCardProps) {
       </div>
 
       {!hasActiveReservation && (
-        <div className="mt-2 text-xs text-zinc-500">Purchase unlocks after a successful reserve.</div>
+        <div className="mt-2 text-sm text-zinc-500">Purchase unlocks after a successful reserve.</div>
       )}
 
       <div className="mt-5 border-t border-zinc-800/70 pt-4">
-        <div className="text-xs font-semibold text-zinc-300">Latest purchasers</div>
+        <div className="text-sm font-semibold text-zinc-200">Latest purchasers</div>
         <div className="mt-2 space-y-1.5 text-sm">
           {latest.map((p) => (
             <div

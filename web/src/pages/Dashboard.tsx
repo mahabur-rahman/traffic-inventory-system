@@ -222,14 +222,14 @@ export function Dashboard() {
 
   return (
     <>
-      <section className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-4 shadow-sm">
+      <section className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">Active Drops</h2>
-            <p className="mt-0.5 text-xs text-zinc-400">Real-time stock updates via WebSocket</p>
+            <h2 className="text-xl font-semibold tracking-tight">Active Drops</h2>
+            <p className="mt-1 text-sm text-zinc-400">Real-time stock updates via WebSocket</p>
           </div>
           <button
-            className="inline-flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm shadow-sm hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+            className="inline-flex items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold shadow-sm hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
             onClick={refresh}
             disabled={loading}
           >
@@ -240,7 +240,7 @@ export function Dashboard() {
         <StatusBar lastUpdatedAt={lastUpdatedAt} loading={loading} ok={ok} socketState={socketStatus} />
       </section>
 
-      <div className="mt-4">
+      <div className="mt-6">
         <CreateDropPanel />
       </div>
 

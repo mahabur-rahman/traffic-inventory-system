@@ -1,4 +1,4 @@
-# Techzu - Real-Time High-Traffic Inventory System (Sneaker Drop)
+# Real-Time High-Traffic Inventory System (Sneaker Drop)
 
 Backend: Node.js + Express + Sequelize + Postgres + Socket.IO  
 Frontend: React (Vite) + TypeScript + TailwindCSS + Redux Toolkit + TanStack Query + Socket.IO client

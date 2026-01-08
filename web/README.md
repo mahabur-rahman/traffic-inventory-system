@@ -1,4 +1,4 @@
-# Techzu Web - Sneaker Drop Dashboard
+# Real-Time High-Traffic Inventory System - Web Dashboard
 
 React + TypeScript + Vite + TailwindCSS + Redux Toolkit + TanStack Query + Socket.IO client.
 

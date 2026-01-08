@@ -1,4 +1,4 @@
-# Techzu API - Real-Time High-Traffic Inventory (Sneaker Drop)
+# Real-Time High-Traffic Inventory System - API (Sneaker Drop)
 
 Express + Sequelize + Postgres + TypeScript + Socket.IO.
 

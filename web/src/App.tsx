@@ -10,12 +10,12 @@ function App() {
   const socketStatus = useAppSelector((s) => s.socket.status);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900 text-zinc-50">
-      <header className="sticky top-0 z-10 border-b border-zinc-900 bg-zinc-950/70 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900 via-zinc-950 to-black text-zinc-50">
+      <header className="sticky top-0 z-10 border-b border-zinc-900/70 bg-zinc-950/70 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <h1 className="truncate text-lg font-semibold tracking-tight">Techzu - Sneaker Drop</h1>
-            <p className="text-xs text-zinc-400">Real-time inventory dashboard</p>
+            <h1 className="truncate text-xl font-semibold tracking-tight">Real-Time High-Traffic Inventory System</h1>
+            <p className="mt-0.5 text-sm text-zinc-400">Sneaker drop dashboard with real-time sync</p>
           </div>
 
           <div className="flex flex-wrap items-center justify-start gap-3 sm:justify-end">
@@ -23,7 +23,7 @@ function App() {
             {isAuthed ? (
               <SessionBar />
             ) : (
-              <span className="rounded-full border border-zinc-800 bg-zinc-950/60 px-3 py-1 text-xs text-zinc-300">
+              <span className="rounded-full border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-300 shadow-sm">
                 Not signed in
               </span>
             )}
@@ -32,12 +32,15 @@ function App() {
       </header>
 
       {!isAuthed ? (
-        <main className="flex min-h-[calc(100vh-88px)] items-center justify-center px-4 py-10">
-          <LoginCard />
+        <main className="relative flex min-h-[calc(100vh-104px)] items-center justify-center px-4 py-14">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(16,185,129,0.12),_rgba(0,0,0,0)_55%)]" />
+          <div className="relative w-full">
+            <LoginCard />
+          </div>
         </main>
       ) : (
-        <main className="mx-auto max-w-5xl px-4 py-8">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-4 text-sm text-zinc-300 shadow-sm">
+        <main className="mx-auto max-w-6xl px-4 py-10">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-5 text-base text-zinc-300 shadow-sm">
             <div className="flex items-start gap-3">
               <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-200">
                 i

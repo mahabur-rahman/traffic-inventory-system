@@ -13,12 +13,12 @@ export function LiveBadge(props: { state: SocketConnectionState }) {
 
   return (
     <span
-      className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950/60 px-2.5 py-1 text-xs text-zinc-200"
+      className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-200 shadow-sm"
       aria-label={`Socket ${label.toLowerCase()}`}
       title={`Socket: ${label}`}
     >
-      <span className={`h-2 w-2 rounded-full ${dot}`} />
-      <span className="font-medium">{label}</span>
+      <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
+      <span className="font-semibold">{label}</span>
     </span>
   );
 }

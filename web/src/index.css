@@ -19,3 +19,10 @@ html,
 body {
   height: 100%;
 }
+
+body {
+  font-feature-settings: "ss01" 1, "ss02" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
