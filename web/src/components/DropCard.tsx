@@ -131,31 +131,35 @@ export function DropCard(props: DropCardProps) {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-400">
-        {hasActiveReservation && reservationMs !== null ? (
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-emerald-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            <span className="font-semibold">Reserved</span>
-            <span className="font-mono tabular-nums">{formatCountdown(reservationMs)}</span>
-          </div>
-        ) : isUpcoming && d.starts_at && hasStartsAt ? (
-          <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-yellow-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-yellow-400" />
-            <span className="font-semibold">Starts in</span>
-            <span className="font-mono tabular-nums">{formatDurationHms(startsAtMs! - nowMs)}</span>
-          </div>
-        ) : (
-          <div className="text-zinc-500">Reserve holds 1 unit for 60s.</div>
-        )}
+      {(hasActiveReservation ||
+        (isUpcoming && d.starts_at && hasStartsAt) ||
+        (d.ends_at && hasEndsAt && endsAtMs! > nowMs)) && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-400">
+          {hasActiveReservation && reservationMs !== null ? (
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-emerald-200">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span className="font-semibold">Reserved</span>
+              <span className="font-mono tabular-nums">{formatCountdown(reservationMs)}</span>
+            </div>
+          ) : isUpcoming && d.starts_at && hasStartsAt ? (
+            <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-yellow-200">
+              <span className="h-1.5 w-1.5 rounded-full bg-yellow-400" />
+              <span className="font-semibold">Starts in</span>
+              <span className="font-mono tabular-nums">{formatDurationHms(startsAtMs! - nowMs)}</span>
+            </div>
+          ) : (
+            <div />
+          )}
 
-        {d.ends_at && hasEndsAt && endsAtMs! > nowMs ? (
-          <div className="text-zinc-500">
-            Ends {formatRelativeTime(d.ends_at, now)} • {formatLocalDateTime(d.ends_at)}
-          </div>
-        ) : (
-          <div className="text-zinc-500">Updates instantly across tabs.</div>
-        )}
-      </div>
+          {d.ends_at && hasEndsAt && endsAtMs! > nowMs ? (
+            <div className="text-zinc-500">
+              Ends {formatRelativeTime(d.ends_at, now)} • {formatLocalDateTime(d.ends_at)}
+            </div>
+          ) : (
+            <div />
+          )}
+        </div>
+      )}
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         {!hasActiveReservation ? (

@@ -35,32 +35,25 @@ function toCentsFromDollarsString(value: string) {
   return Math.max(0, Math.round(n * 100));
 }
 
-function toIsoOrNull(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
+function toIsoFromDateAndTimeOrNull(date: string, time: string) {
+  const d = date.trim();
+  const t = time.trim();
+  if (!d && !t) return null;
+  if (!d || !t) throw new Error("Both date and time are required");
 
-  // Prefer parsing datetime-local strings deterministically as local time.
-  // Supported formats:
-  // - YYYY-MM-DDTHH:mm
-  // - YYYY-MM-DDTHH:mm:ss
-  // - ISO strings (fallback to Date parsing)
-  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(trimmed);
-  if (match) {
-    const year = Number(match[1]);
-    const month = Number(match[2]);
-    const day = Number(match[3]);
-    const hour = Number(match[4]);
-    const minute = Number(match[5]);
-    const second = match[6] ? Number(match[6]) : 0;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
+  const matchT = /^(\d{2}):(\d{2})$/.exec(t);
+  if (!match || !matchT) throw new Error("Invalid date/time");
 
-    const d = new Date(year, month - 1, day, hour, minute, second, 0);
-    if (Number.isNaN(d.getTime())) throw new Error("Invalid date");
-    return d.toISOString();
-  }
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(matchT[1]);
+  const minute = Number(matchT[2]);
 
-  const d = new Date(trimmed);
-  if (Number.isNaN(d.getTime())) throw new Error("Invalid date");
-  return d.toISOString();
+  const dt = new Date(year, month - 1, day, hour, minute, 0, 0);
+  if (Number.isNaN(dt.getTime())) throw new Error("Invalid date/time");
+  return dt.toISOString();
 }
 
 export function CreateDropPanel() {
@@ -69,8 +62,10 @@ export function CreateDropPanel() {
   const [currency, setCurrency] = useState("USD");
   const [priceDollars, setPriceDollars] = useState("50");
   const [totalStock, setTotalStock] = useState("10");
-  const [startsAt, setStartsAt] = useState("");
-  const [endsAt, setEndsAt] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [status, setStatus] = useState<"live" | "scheduled">("live");
 
   const createDrop = useCreateDropMutation();
@@ -92,23 +87,23 @@ export function CreateDropPanel() {
 
   const startsPreview = useMemo(() => {
     try {
-      const iso = toIsoOrNull(startsAt);
+      const iso = toIsoFromDateAndTimeOrNull(startDate, startTime);
       if (!iso) return null;
       return { iso, local: formatLocalDateTime(iso), relative: formatRelativeTime(iso, new Date()) };
     } catch {
       return null;
     }
-  }, [startsAt]);
+  }, [startDate, startTime]);
 
   const endsPreview = useMemo(() => {
     try {
-      const iso = toIsoOrNull(endsAt);
+      const iso = toIsoFromDateAndTimeOrNull(endDate, endTime);
       if (!iso) return null;
       return { iso, local: formatLocalDateTime(iso), relative: formatRelativeTime(iso, new Date()) };
     } catch {
       return null;
     }
-  }, [endsAt]);
+  }, [endDate, endTime]);
 
   useEffect(() => {
     if (!open) return;
@@ -187,11 +182,12 @@ export function CreateDropPanel() {
                     const stock = Number.parseInt(totalStock, 10);
                     if (!Number.isFinite(stock) || stock < 0) throw new Error("Invalid stock");
 
-                    if (status === "scheduled" && !startsAt.trim()) {
-                      throw new Error("Starts at is required when status is scheduled");
+                    const startsIso = toIsoFromDateAndTimeOrNull(startDate, startTime);
+                    const endsIso = toIsoFromDateAndTimeOrNull(endDate, endTime);
+
+                    if (status === "scheduled" && !startsIso) {
+                      throw new Error("Start date & time is required when status is scheduled");
                     }
-                    const startsIso = toIsoOrNull(startsAt);
-                    const endsIso = toIsoOrNull(endsAt);
                     if (status === "live" && startsIso && new Date(startsIso).getTime() > Date.now()) {
                       throw new Error("For a future start time, set status to scheduled");
                     }
@@ -213,6 +209,10 @@ export function CreateDropPanel() {
                     setOpen(false);
                     setName("");
                     setTotalStock("10");
+                    setStartDate("");
+                    setStartTime("");
+                    setEndDate("");
+                    setEndTime("");
                   } catch (err) {
                     notifyError(err);
                   }
@@ -301,14 +301,23 @@ export function CreateDropPanel() {
                     <FiCalendar className="text-zinc-400" />
                     Starts at {status === "scheduled" ? "(required)" : "(optional)"}
                   </div>
-                  <input
-                    className={inputClassName(disabled)}
-                    value={startsAt}
-                    onChange={(e) => setStartsAt(e.target.value)}
-                    disabled={disabled}
-                    type="datetime-local"
-                    step={60}
-                  />
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <input
+                      className={inputClassName(disabled)}
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      disabled={disabled}
+                      type="date"
+                    />
+                    <input
+                      className={inputClassName(disabled)}
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      disabled={disabled}
+                      type="time"
+                      step={60}
+                    />
+                  </div>
                   {startsPreview ? (
                     <div className="text-xs text-zinc-500">
                       {startsPreview.local} • {startsPreview.relative}
@@ -323,15 +332,25 @@ export function CreateDropPanel() {
                     <FiCalendar className="text-zinc-400" />
                     Ends at (optional)
                   </div>
-                  <input
-                    className={inputClassName(disabled)}
-                    value={endsAt}
-                    onChange={(e) => setEndsAt(e.target.value)}
-                    disabled={disabled}
-                    type="datetime-local"
-                    step={60}
-                    min={startsAt || undefined}
-                  />
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <input
+                      className={inputClassName(disabled)}
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      disabled={disabled}
+                      type="date"
+                      min={startDate || undefined}
+                    />
+                    <input
+                      className={inputClassName(disabled)}
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      disabled={disabled}
+                      type="time"
+                      step={60}
+                      min={endDate && endDate === startDate ? startTime || undefined : undefined}
+                    />
+                  </div>
                   {endsPreview ? (
                     <div className="text-xs text-zinc-500">
                       {endsPreview.local} • {endsPreview.relative}
