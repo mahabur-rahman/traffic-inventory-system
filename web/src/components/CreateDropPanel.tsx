@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
+import { FiCalendar, FiChevronDown, FiChevronUp, FiDollarSign, FiHash, FiPackage, FiPlusCircle, FiTag } from "react-icons/fi";
 
 import { notifyError, notifySuccess } from "../lib/notify";
 import { useCreateDropMutation } from "../hooks/queries";
 
 function inputClassName(disabled?: boolean) {
   return [
-    "w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-base text-zinc-100 shadow-sm sm:text-lg",
+    "w-full rounded-2xl border border-zinc-800 bg-zinc-950/60 px-5 py-4 text-lg text-zinc-100 shadow-sm ring-1 ring-transparent transition focus:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400/20 sm:text-xl",
     "placeholder:text-zinc-600",
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200",
     disabled ? "opacity-60" : ""
@@ -13,7 +14,7 @@ function inputClassName(disabled?: boolean) {
 }
 
 function labelClassName() {
-  return "text-sm font-semibold text-zinc-200";
+  return "text-sm font-semibold text-zinc-200 inline-flex items-center gap-2";
 }
 
 function toCentsFromDollarsString(value: string) {
@@ -67,19 +68,26 @@ export function CreateDropPanel() {
         type="button"
       >
         <div className="min-w-0">
-          <div className="text-base font-semibold text-zinc-100">Create Drop (API)</div>
+          <div className="flex items-center gap-2 text-base font-semibold text-zinc-100">
+            <FiPlusCircle className="text-emerald-300" />
+            <span>Create Drop</span>
+            <span className="rounded-full border border-zinc-800 bg-zinc-950/60 px-2 py-0.5 text-[11px] font-semibold text-zinc-300">
+              API
+            </span>
+          </div>
           <div className="mt-1 text-sm text-zinc-400">
             Optional demo tool; creates a new drop via <span className="font-mono">POST /api/drops</span>.
           </div>
         </div>
-        <span className="rounded-full border border-zinc-800 bg-zinc-950 px-3 py-1 text-xs text-zinc-300">
-          {open ? "Hide" : "Show"}
+        <span className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-semibold text-zinc-200 shadow-sm">
+          <span>{open ? "Hide" : "Show"}</span>
+          {open ? <FiChevronUp /> : <FiChevronDown />}
         </span>
       </button>
 
       {open && (
         <form
-          className="mt-5 grid gap-5 md:grid-cols-2"
+          className="mt-6 grid gap-5 sm:grid-cols-2"
           onSubmit={async (e) => {
             e.preventDefault();
             try {
@@ -105,8 +113,11 @@ export function CreateDropPanel() {
             }
           }}
         >
-          <div className="space-y-1.5">
-            <div className={labelClassName()}>Name</div>
+          <div className="space-y-2 sm:col-span-2">
+            <div className={labelClassName()}>
+              <FiTag className="text-zinc-400" />
+              Name
+            </div>
             <input
               className={inputClassName(disabled)}
               value={name}
@@ -118,35 +129,42 @@ export function CreateDropPanel() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <div className={labelClassName()}>Currency</div>
-              <input
-                className={inputClassName(disabled)}
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                placeholder="USD"
-                disabled={disabled}
-                maxLength={3}
-              />
+          <div className="space-y-2">
+            <div className={labelClassName()}>
+              <FiPackage className="text-zinc-400" />
+              Currency
             </div>
-
-            <div className="space-y-1.5">
-              <div className={labelClassName()}>Price (dollars)</div>
-              <input
-                className={inputClassName(disabled)}
-                value={priceDollars}
-                onChange={(e) => setPriceDollars(e.target.value)}
-                placeholder="50"
-                disabled={disabled}
-                inputMode="decimal"
-              />
-              {preview ? <div className="text-xs text-zinc-500">Preview: {preview}</div> : null}
-            </div>
+            <input
+              className={inputClassName(disabled)}
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              placeholder="USD"
+              disabled={disabled}
+              maxLength={3}
+            />
           </div>
 
-          <div className="space-y-1.5">
-            <div className={labelClassName()}>Total stock</div>
+          <div className="space-y-2">
+            <div className={labelClassName()}>
+              <FiDollarSign className="text-zinc-400" />
+              Price (dollars)
+            </div>
+            <input
+              className={inputClassName(disabled)}
+              value={priceDollars}
+              onChange={(e) => setPriceDollars(e.target.value)}
+              placeholder="50"
+              disabled={disabled}
+              inputMode="decimal"
+            />
+            {preview ? <div className="text-sm text-zinc-500">Preview: {preview}</div> : null}
+          </div>
+
+          <div className="space-y-2">
+            <div className={labelClassName()}>
+              <FiHash className="text-zinc-400" />
+              Total stock
+            </div>
             <input
               className={inputClassName(disabled)}
               value={totalStock}
@@ -157,8 +175,11 @@ export function CreateDropPanel() {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <div className={labelClassName()}>Status</div>
+          <div className="space-y-2">
+            <div className={labelClassName()}>
+              <FiPackage className="text-zinc-400" />
+              Status
+            </div>
             <select
               className={inputClassName(disabled)}
               value={status}
@@ -174,8 +195,11 @@ export function CreateDropPanel() {
             </select>
           </div>
 
-          <div className="space-y-1.5">
-            <div className={labelClassName()}>Starts at (optional)</div>
+          <div className="space-y-2">
+            <div className={labelClassName()}>
+              <FiCalendar className="text-zinc-400" />
+              Starts at (optional)
+            </div>
             <input
               className={inputClassName(disabled)}
               value={startsAt}
@@ -185,8 +209,11 @@ export function CreateDropPanel() {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <div className={labelClassName()}>Ends at (optional)</div>
+          <div className="space-y-2">
+            <div className={labelClassName()}>
+              <FiCalendar className="text-zinc-400" />
+              Ends at (optional)
+            </div>
             <input
               className={inputClassName(disabled)}
               value={endsAt}
@@ -196,15 +223,16 @@ export function CreateDropPanel() {
             />
           </div>
 
-          <div className="md:col-span-2 flex items-center justify-between gap-3">
-            <div className="text-xs text-zinc-500">
+          <div className="sm:col-span-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm text-zinc-500">
               New drops broadcast to all clients via <span className="font-mono">DROP_CREATED</span>.
             </div>
             <button
-              className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-base font-semibold text-zinc-900 shadow-sm hover:bg-zinc-200 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-4 text-lg font-semibold text-zinc-900 shadow-sm hover:bg-zinc-200 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-xl"
               disabled={disabled}
               type="submit"
             >
+              <FiPlusCircle />
               {disabled ? "Creating..." : "Create drop"}
             </button>
           </div>

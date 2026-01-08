@@ -1,5 +1,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { FiLogIn } from "react-icons/fi";
 
 import { useAuth } from "../hooks/useAuth";
 import { Spinner } from "./Spinner";
@@ -10,6 +12,7 @@ function isUuid(value: string) {
 
 export function LoginCard() {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,6 +30,7 @@ export function LoginCard() {
       toast.success("Signed in");
       setUsername("");
       setUserId("");
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to sign in");
     } finally {
@@ -36,7 +40,12 @@ export function LoginCard() {
 
   return (
     <div className="mx-auto w-full max-w-lg rounded-3xl border border-zinc-800/70 bg-zinc-950/50 p-6 shadow-2xl shadow-black/30 backdrop-blur sm:max-w-xl sm:p-8">
-      <h2 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">Sign in</h2>
+      <div className="flex items-center gap-3">
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950 text-zinc-200 shadow-sm">
+          <FiLogIn className="text-lg" />
+        </span>
+        <h2 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">Sign in</h2>
+      </div>
       <p className="mt-2 text-base leading-relaxed text-zinc-400">
         Enter a username to continue. Optionally provide a User ID to simulate multiple users across tabs.
       </p>

@@ -1,5 +1,7 @@
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { FiLogOut } from "react-icons/fi";
 
 import { useAuth } from "../hooks/useAuth";
 import { dropsKey, myReservationsKey } from "../hooks/queries";
@@ -9,6 +11,7 @@ export function SessionBar() {
   const { logout } = useAuth();
   const session = useAppSelector((s) => s.session);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const isAuthed = Boolean(session.userId && session.username);
 
@@ -36,13 +39,17 @@ export function SessionBar() {
         onClick={async () => {
           logout();
           toast.success("Signed out");
+          navigate("/", { replace: true });
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: dropsKey }),
             queryClient.invalidateQueries({ queryKey: myReservationsKey })
           ]);
         }}
       >
-        Logout
+        <span className="inline-flex items-center gap-2">
+          <FiLogOut />
+          Logout
+        </span>
       </button>
     </div>
   );
