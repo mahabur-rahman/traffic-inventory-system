@@ -10,6 +10,7 @@ import {
 } from "react-icons/fi";
 
 import { notifyError, notifySuccess } from "../lib/notify";
+import { formatLocalDateTime, formatRelativeTime } from "../lib/time";
 import { useCreateDropMutation } from "../hooks/queries";
 
 function inputClassName(disabled?: boolean) {
@@ -88,6 +89,26 @@ export function CreateDropPanel() {
       return null;
     }
   }, [priceDollars, currency]);
+
+  const startsPreview = useMemo(() => {
+    try {
+      const iso = toIsoOrNull(startsAt);
+      if (!iso) return null;
+      return { iso, local: formatLocalDateTime(iso), relative: formatRelativeTime(iso, new Date()) };
+    } catch {
+      return null;
+    }
+  }, [startsAt]);
+
+  const endsPreview = useMemo(() => {
+    try {
+      const iso = toIsoOrNull(endsAt);
+      if (!iso) return null;
+      return { iso, local: formatLocalDateTime(iso), relative: formatRelativeTime(iso, new Date()) };
+    } catch {
+      return null;
+    }
+  }, [endsAt]);
 
   useEffect(() => {
     if (!open) return;
@@ -279,7 +300,7 @@ export function CreateDropPanel() {
                 <div className="space-y-2">
                   <div className={labelClassName()}>
                     <FiCalendar className="text-zinc-400" />
-                    Starts at (optional)
+                    Starts at {status === "scheduled" ? "(required)" : "(optional)"}
                   </div>
                   <input
                     className={inputClassName(disabled)}
@@ -289,7 +310,13 @@ export function CreateDropPanel() {
                     type="datetime-local"
                     step={60}
                   />
-                  <div className="text-xs text-zinc-500">Uses your device's local time.</div>
+                  {startsPreview ? (
+                    <div className="text-xs text-zinc-500">
+                      {startsPreview.local} • {startsPreview.relative}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-zinc-500">Uses your device's local time.</div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -306,7 +333,13 @@ export function CreateDropPanel() {
                     step={60}
                     min={startsAt || undefined}
                   />
-                  <div className="text-xs text-zinc-500">Leave empty for no end time.</div>
+                  {endsPreview ? (
+                    <div className="text-xs text-zinc-500">
+                      {endsPreview.local} • {endsPreview.relative}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-zinc-500">Leave empty for no end time.</div>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2 mt-1 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">

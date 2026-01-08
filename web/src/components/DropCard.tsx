@@ -1,6 +1,6 @@
 import type { Drop } from "../types/drop";
 import type { MyReservation } from "../types/reservation";
-import { formatRelativeTime } from "../lib/time";
+import { formatDurationHms, formatLocalDateTime, formatRelativeTime } from "../lib/time";
 import { Spinner } from "./Spinner";
 
 export type DropCardProps = {
@@ -54,25 +54,43 @@ function formatCountdown(msRemaining: number) {
 export function DropCard(props: DropCardProps) {
   const d = props.drop;
   const latest = (d.activity_feed?.latest_purchasers ?? []).slice(0, 3);
-  const status = statusStyles(d.status);
+
+  const now = props.now ?? new Date();
+  const nowMs = now.getTime();
+
+  const startsAtMs = d.starts_at ? new Date(d.starts_at).getTime() : null;
+  const endsAtMs = d.ends_at ? new Date(d.ends_at).getTime() : null;
+
+  const hasStartsAt = startsAtMs !== null && !Number.isNaN(startsAtMs);
+  const hasEndsAt = endsAtMs !== null && !Number.isNaN(endsAtMs);
+
+  const isUpcoming = d.status === "scheduled" && hasStartsAt && startsAtMs! > nowMs;
+  const isEndedByTime = hasEndsAt && endsAtMs! <= nowMs;
+
+  const clientStatus = (() => {
+    if (isEndedByTime) return "ended";
+    if (d.status === "scheduled" && (!hasStartsAt || startsAtMs! <= nowMs)) return "live";
+    return d.status;
+  })();
+
+  const status = statusStyles(clientStatus);
 
   const isReserving = props.busyAction === "reserve";
   const isPurchasing = props.busyAction === "purchase";
   const isCancelling = props.busyAction === "cancel";
   const isBusy = isReserving || isPurchasing || isCancelling;
 
-  const now = props.now ?? new Date();
   const reservation = props.reservation ?? null;
   const reservationMs =
     reservation?.expires_at ? new Date(reservation.expires_at).getTime() - now.getTime() : null;
   const hasActiveReservation = Boolean(reservation && reservationMs !== null && reservationMs > 0);
 
-  const canReserve =
-    d.available_stock > 0 && (d.status === "live" || d.status === "scheduled") && !hasActiveReservation;
+  const canReserve = d.available_stock > 0 && clientStatus === "live" && !hasActiveReservation && !isUpcoming && !isEndedByTime;
 
   const reserveLabel = (() => {
     if (isReserving) return "Reserving";
     if (hasActiveReservation) return "Reserved";
+    if (isUpcoming) return "Scheduled";
     if (d.available_stock <= 0) return "Sold out";
     return "Reserve";
   })();
@@ -90,7 +108,7 @@ export function DropCard(props: DropCardProps) {
             <div className="truncate text-lg font-semibold tracking-tight">{d.name}</div>
             <span className={`inline-flex items-center gap-2 rounded-full border px-2 py-0.5 text-xs ${status.bg} ${status.border} ${status.text}`}>
               <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
-              <span className="capitalize">{d.status}</span>
+              <span className="capitalize">{clientStatus}</span>
             </span>
           </div>
           <div className="mt-1 text-base text-zinc-400">
@@ -120,10 +138,23 @@ export function DropCard(props: DropCardProps) {
             <span className="font-semibold">Reserved</span>
             <span className="font-mono tabular-nums">{formatCountdown(reservationMs)}</span>
           </div>
+        ) : isUpcoming && d.starts_at && hasStartsAt ? (
+          <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-yellow-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-yellow-400" />
+            <span className="font-semibold">Starts in</span>
+            <span className="font-mono tabular-nums">{formatDurationHms(startsAtMs! - nowMs)}</span>
+          </div>
         ) : (
           <div className="text-zinc-500">Reserve holds 1 unit for 60s.</div>
         )}
-        <div className="text-zinc-500">Updates instantly across tabs.</div>
+
+        {d.ends_at && hasEndsAt && endsAtMs! > nowMs ? (
+          <div className="text-zinc-500">
+            Ends {formatRelativeTime(d.ends_at, now)} • {formatLocalDateTime(d.ends_at)}
+          </div>
+        ) : (
+          <div className="text-zinc-500">Updates instantly across tabs.</div>
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2">

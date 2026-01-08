@@ -38,6 +38,13 @@ export const createDropBodySchema = z
         message: "starts_at is required when status is scheduled"
       });
     }
+    if (data.status === "live" && data.starts_at && data.starts_at.getTime() > Date.now()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["starts_at"],
+        message: "starts_at must be <= now when status is live"
+      });
+    }
   });
 
 export const listDropsQuerySchema = z.object({
