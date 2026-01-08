@@ -20,13 +20,7 @@ function App() {
 
           <div className="flex flex-wrap items-center justify-start gap-3 sm:justify-end">
             <LiveBadge state={socketStatus} />
-            {isAuthed ? (
-              <SessionBar />
-            ) : (
-              <span className="rounded-full border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-300 shadow-sm">
-                Not signed in
-              </span>
-            )}
+            {isAuthed ? <SessionBar /> : null}
           </div>
         </div>
       </header>
