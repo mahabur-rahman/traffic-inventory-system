@@ -34,7 +34,9 @@ export function Dashboard() {
 
   const dispatch = useAppDispatch();
   const socketStatus = useAppSelector((s) => s.socket.status);
+  const username = useAppSelector((s) => s.session.username);
   const { socket } = useSocket();
+  const isAdmin = (username ?? "").trim().toLowerCase() === "admin";
 
   const queryClient = useQueryClient();
   const dropsQuery = useDropsQuery();
@@ -228,7 +230,7 @@ export function Dashboard() {
             <h2 className="text-xl font-semibold tracking-tight">Active Drops</h2>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <CreateDropPanel />
+            {isAdmin ? <CreateDropPanel /> : null}
             <button
               className="inline-flex items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold shadow-sm hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
               onClick={refresh}
