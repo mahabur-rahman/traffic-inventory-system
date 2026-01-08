@@ -10,7 +10,7 @@ function App() {
   const socketStatus = useAppSelector((s) => s.socket.status);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900 via-zinc-950 to-black text-zinc-50">
+    <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-black text-zinc-50">
       <header className="sticky top-0 z-10 border-b border-zinc-900/70 bg-zinc-950/70 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
@@ -46,11 +46,8 @@ function App() {
                 i
               </span>
               <div>
-                <div className="font-semibold text-zinc-100">Dev session enabled</div>
-                <div className="mt-0.5 text-zinc-400">
-                  Requests send <span className="font-mono">X-User-Id</span> and{" "}
-                  <span className="font-mono">X-User-Name</span>.
-                </div>
+                <div className="font-semibold text-zinc-100">Session active</div>
+                <div className="mt-0.5 text-zinc-400">You can open multiple tabs to test real-time stock sync.</div>
               </div>
             </div>
           </div>

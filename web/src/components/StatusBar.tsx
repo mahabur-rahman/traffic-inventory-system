@@ -1,4 +1,3 @@
-import { API_ORIGIN } from "../lib/env";
 import type { SocketConnectionState } from "../types/socket";
 
 export type StatusBarProps = {
@@ -24,13 +23,13 @@ export function StatusBar(props: StatusBarProps) {
     <div className="mt-5 flex flex-wrap items-center gap-2">
       <span className={chip}>
         <span className={`h-2.5 w-2.5 rounded-full ${apiDotClass}`} />
-        <span className="text-zinc-400">API</span>
-        <span className="font-mono text-[12px] text-zinc-300">{API_ORIGIN}</span>
+        <span className="text-zinc-400">Backend</span>
+        <span className="font-semibold">{props.ok === null ? "Checking..." : props.ok ? "Online" : "Offline"}</span>
       </span>
 
       <span className={chip}>
         <span className={`h-2.5 w-2.5 rounded-full ${socketDotClass}`} />
-        <span className="text-zinc-400">Socket</span>
+        <span className="text-zinc-400">Real-time</span>
         <span className="capitalize">{props.socketState ?? "disconnected"}</span>
       </span>
 
@@ -46,4 +45,3 @@ export function StatusBar(props: StatusBarProps) {
     </div>
   );
 }
-

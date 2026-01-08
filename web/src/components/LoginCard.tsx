@@ -38,8 +38,7 @@ export function LoginCard() {
     <div className="mx-auto w-full max-w-xl rounded-3xl border border-zinc-800/70 bg-zinc-950/50 p-8 shadow-2xl shadow-black/30 backdrop-blur">
       <h2 className="text-2xl font-semibold tracking-tight text-zinc-50">Sign in</h2>
       <p className="mt-2 text-base leading-relaxed text-zinc-400">
-        This is a dev-only session. We store your session in localStorage and send{" "}
-        <span className="font-mono">X-User-Id</span> and <span className="font-mono">X-User-Name</span>.
+        Enter a username to continue. Optionally provide a User ID to simulate multiple users across tabs.
       </p>
 
       <form className="mt-6 space-y-5" onSubmit={onSubmit}>
