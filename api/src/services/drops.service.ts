@@ -53,7 +53,6 @@ export async function listActiveDrops(params: ListDropsParams) {
   const where = {
     status: { [Op.in]: ["scheduled", "live"] },
     [Op.and]: [
-      { [Op.or]: [{ startsAt: null }, { startsAt: { [Op.lte]: now } }] },
       { [Op.or]: [{ endsAt: null }, { endsAt: { [Op.gt]: now } }] }
     ]
   };

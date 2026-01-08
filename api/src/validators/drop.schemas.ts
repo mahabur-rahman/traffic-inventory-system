@@ -31,6 +31,13 @@ export const createDropBodySchema = z
         message: "ends_at must be after starts_at"
       });
     }
+    if (data.status === "scheduled" && !data.starts_at) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["starts_at"],
+        message: "starts_at is required when status is scheduled"
+      });
+    }
   });
 
 export const listDropsQuerySchema = z.object({
