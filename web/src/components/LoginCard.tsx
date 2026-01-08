@@ -45,7 +45,7 @@ export function LoginCard() {
         <label className="block text-sm font-semibold text-zinc-200">
           Username <span className="text-zinc-500">(required)</span>
           <input
-            className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-base text-zinc-100 placeholder:text-zinc-600 shadow-sm focus:border-zinc-600 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-lg"
+            className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950/60 px-5 py-4 text-lg text-zinc-100 placeholder:text-zinc-600 shadow-sm ring-1 ring-transparent transition focus:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-xl"
             placeholder="alice"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -58,7 +58,7 @@ export function LoginCard() {
         <label className="block text-sm font-semibold text-zinc-200">
           User ID (optional UUID)
           <input
-            className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 font-mono text-base text-zinc-100 placeholder:text-zinc-600 shadow-sm focus:border-zinc-600 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-lg"
+            className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950/60 px-5 py-4 font-mono text-lg text-zinc-100 placeholder:text-zinc-600 shadow-sm ring-1 ring-transparent transition focus:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-xl"
             placeholder="e.g. 2f1e2b9d-8a9d-4b77-9c4f-0b21d0b2f0c1"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
@@ -67,7 +67,7 @@ export function LoginCard() {
         </label>
 
         <button
-          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-base font-semibold text-zinc-900 shadow-sm hover:bg-zinc-200 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-lg"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-6 py-4 text-lg font-semibold text-zinc-900 shadow-sm hover:bg-zinc-200 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-xl"
           disabled={loading}
           type="submit"
         >
