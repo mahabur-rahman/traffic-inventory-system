@@ -8,7 +8,7 @@ export type DropCardProps = {
   onReserve: (dropId: string) => Promise<void>;
   onPurchase: (dropId: string) => Promise<void>;
   onCancel?: (dropId: string, reservationId: string) => Promise<void>;
-  busy?: boolean;
+  busyAction?: "reserve" | "purchase" | "cancel" | null;
   reservation?: MyReservation | null;
   now?: Date;
   stockFlash?: boolean;
@@ -56,6 +56,11 @@ export function DropCard(props: DropCardProps) {
   const latest = (d.activity_feed?.latest_purchasers ?? []).slice(0, 3);
   const status = statusStyles(d.status);
 
+  const isReserving = props.busyAction === "reserve";
+  const isPurchasing = props.busyAction === "purchase";
+  const isCancelling = props.busyAction === "cancel";
+  const isBusy = isReserving || isPurchasing || isCancelling;
+
   const now = props.now ?? new Date();
   const reservation = props.reservation ?? null;
   const reservationMs =
@@ -66,7 +71,7 @@ export function DropCard(props: DropCardProps) {
     d.available_stock > 0 && (d.status === "live" || d.status === "scheduled") && !hasActiveReservation;
 
   const reserveLabel = (() => {
-    if (props.busy) return "Reserving";
+    if (isReserving) return "Reserving";
     if (hasActiveReservation) return "Reserved";
     if (d.available_stock <= 0) return "Sold out";
     return "Reserve";
@@ -126,37 +131,37 @@ export function DropCard(props: DropCardProps) {
           <button
             className={[
               "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-base font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200",
-              canReserve && !props.busy ? "bg-white text-zinc-900 hover:bg-zinc-200" : "bg-zinc-800 text-zinc-200"
+              canReserve && !isBusy ? "bg-white text-zinc-900 hover:bg-zinc-200" : "bg-zinc-800 text-zinc-200"
             ].join(" ")}
             style={{ gridColumn: "1 / -1" }}
-            disabled={props.busy || !canReserve}
+            disabled={isBusy || !canReserve}
             onClick={async () => {
               try {
                 await props.onReserve(d.id);
               } catch {}
             }}
           >
-            {props.busy ? <Spinner className={canReserve ? "text-zinc-700" : "text-zinc-200"} /> : null}
+            {isReserving ? <Spinner className={canReserve ? "text-zinc-700" : "text-zinc-200"} /> : null}
             <span>{reserveLabel}</span>
           </button>
         ) : (
           <>
             <button
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3 text-base font-semibold text-emerald-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-200"
-              disabled={props.busy}
+              disabled={isBusy}
               onClick={async () => {
                 try {
                   await props.onPurchase(d.id);
                 } catch {}
               }}
             >
-              {props.busy ? <Spinner className="text-emerald-950" /> : null}
-              <span>{props.busy ? "Purchasing" : "Purchase"}</span>
+              {isPurchasing ? <Spinner className="text-emerald-950" /> : null}
+              <span>{isPurchasing ? "Purchasing" : "Purchase"}</span>
             </button>
 
             <button
               className="inline-flex items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-base font-semibold text-zinc-200 shadow-sm hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
-              disabled={props.busy || !props.onCancel || !reservation?.id}
+              disabled={isBusy || !props.onCancel || !reservation?.id}
               onClick={async () => {
                 if (!reservation?.id) return;
                 try {
@@ -164,7 +169,10 @@ export function DropCard(props: DropCardProps) {
                 } catch {}
               }}
             >
-              Cancel
+              <span className="inline-flex items-center gap-2">
+                {isCancelling ? <Spinner className="text-zinc-200" /> : null}
+                {isCancelling ? "Cancelling..." : "Cancel"}
+              </span>
             </button>
           </>
         )}

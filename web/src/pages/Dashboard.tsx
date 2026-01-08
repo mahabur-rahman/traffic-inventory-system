@@ -24,7 +24,7 @@ import { ErrorBanner } from "../components/ErrorBanner";
 import { CreateDropPanel } from "../components/CreateDropPanel";
 
 export function Dashboard() {
-  const [busyDropId, setBusyDropId] = useState<string | null>(null);
+  const [busy, setBusy] = useState<{ dropId: string; action: "reserve" | "purchase" | "cancel" } | null>(null);
   const [now, setNow] = useState<Date>(() => new Date());
   const [stockFlash, setStockFlash] = useState<Record<string, boolean>>({});
 
@@ -87,13 +87,13 @@ export function Dashboard() {
     const key = `reserve:${dropId}`;
     if (inFlight.current.has(key)) return;
     inFlight.current.add(key);
-    setBusyDropId(dropId);
+    setBusy({ dropId, action: "reserve" });
     try {
       delete expiredNotified.current[dropId];
       await reserveMutation.mutateAsync(dropId);
       flashDrop(dropId);
     } finally {
-      setBusyDropId(null);
+      setBusy(null);
       inFlight.current.delete(key);
     }
   }
@@ -102,11 +102,11 @@ export function Dashboard() {
     const key = `purchase:${dropId}`;
     if (inFlight.current.has(key)) return;
     inFlight.current.add(key);
-    setBusyDropId(dropId);
+    setBusy({ dropId, action: "purchase" });
     try {
       await purchaseMutation.mutateAsync(dropId);
     } finally {
-      setBusyDropId(null);
+      setBusy(null);
       inFlight.current.delete(key);
     }
   }
@@ -115,12 +115,12 @@ export function Dashboard() {
     const key = `cancel:${reservationId}`;
     if (inFlight.current.has(key)) return;
     inFlight.current.add(key);
-    setBusyDropId(dropId);
+    setBusy({ dropId, action: "cancel" });
     try {
       await cancelMutation.mutateAsync(reservationId);
       flashDrop(dropId);
     } finally {
-      setBusyDropId(null);
+      setBusy(null);
       inFlight.current.delete(key);
     }
   }
@@ -256,7 +256,7 @@ export function Dashboard() {
               onReserve={reserve}
               onPurchase={purchase}
               onCancel={cancel}
-              busy={busyDropId === d.id}
+              busyAction={busy?.dropId === d.id ? busy.action : null}
               reservation={reservationsByDropId[d.id] ?? null}
               now={now}
               stockFlash={Boolean(stockFlash[d.id])}
