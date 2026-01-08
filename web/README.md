@@ -1,4 +1,4 @@
-# Real-Time High-Traffic Inventory System - Web Dashboard
+# Techzu - Real-Time High-Traffic Inventory System - Web Dashboard
 
 React + TypeScript + Vite + TailwindCSS + Redux Toolkit + TanStack Query + Socket.IO client.
 
@@ -22,6 +22,21 @@ Web URL: `http://localhost:5173`
 - `VITE_API_URL` (example: `http://localhost:4000/api`)
 - `VITE_SOCKET_URL` (example: `http://localhost:4000`)
 
+## Run on Your Network (LAN)
+
+1) Run the dev server (LAN hosting is enabled):
+
+```bash
+cd web
+npm run dev
+```
+
+2) Set `web/.env` for your LAN IP:
+- `VITE_API_URL=http://<YOUR_LAN_IP>:4000/api`
+- `VITE_SOCKET_URL=http://<YOUR_LAN_IP>:4000`
+
+Then open: `http://<YOUR_LAN_IP>:5173`.
+
 ## How It Works
 
 - Routing: `react-router-dom` (redirect to `/dashboard` after login; unauthenticated users are redirected back to `/`)
@@ -42,4 +57,4 @@ Web URL: `http://localhost:5173`
 4) Reserve in window A -> window B stock updates instantly
 5) Try last-stock concurrency -> only one succeeds (toast shows conflict)
 6) Wait ~60s -> reservation expires and stock recovers
-7) Reserve + Purchase -> “Latest purchasers” updates (top 3 per drop)
+7) Reserve + Purchase -> "Latest purchasers" updates (top 3 per drop)

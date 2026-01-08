@@ -1,4 +1,4 @@
-# Real-Time High-Traffic Inventory System (Sneaker Drop)
+# Techzu - Real-Time High-Traffic Inventory System (Sneaker Drop)
 
 Backend: Node.js + Express + Sequelize + Postgres + Socket.IO  
 Frontend: React (Vite) + TypeScript + TailwindCSS + Redux Toolkit + TanStack Query + Socket.IO client
@@ -65,7 +65,7 @@ On boot, the worker runs a cleanup pass to recover after restarts.
 ### Purchase Flow
 
 Users can only purchase if they have an ACTIVE, unexpired reservation for that drop.
-Stock is decremented at reserve time; purchase consumes the reservation so it won’t be restored.
+Stock is decremented at reserve time; purchase consumes the reservation so it won't be restored.
 
 ### Real-Time Sync (Socket.IO)
 
@@ -88,7 +88,7 @@ Frontend uses TanStack Query as the source of truth and applies socket events vi
 6) Wait ~60s -> reservation expires, stock recovers (both windows update)
 7) Reserve + Purchase -> activity feed (top 3 purchasers) updates on each drop card
 
-Tip: Create new drops via `POST /api/drops` or the web app’s **Create drop** modal.
+Tip: Create new drops via `POST /api/drops` or the web app's **Create drop** modal.
 
 ## Production Build
 
@@ -96,3 +96,19 @@ Tip: Create new drops via `POST /api/drops` or the web app’s **Create drop** m
 cd api && npm run build
 cd web && npm run build
 ```
+
+## Run on Your Network (LAN)
+
+1) Start the API as usual.
+2) Start the web dev server (it's configured to listen on your LAN):
+
+```bash
+cd web
+npm run dev
+```
+
+3) Update `web/.env` to point at your PC's LAN IP:
+- `VITE_API_URL=http://<YOUR_LAN_IP>:4000/api`
+- `VITE_SOCKET_URL=http://<YOUR_LAN_IP>:4000`
+
+Then open from another device: `http://<YOUR_LAN_IP>:5173`.
