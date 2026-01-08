@@ -12,13 +12,13 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-black text-zinc-50">
       <header className="sticky top-0 z-10 border-b border-zinc-900/70 bg-zinc-950/70 backdrop-blur">
-        <div className="mx-auto grid w-full grid-cols-[1fr_auto] items-center gap-4 px-4 py-4 sm:grid-cols-[1fr_auto_1fr] sm:px-6 lg:px-8">
-          <div className="min-w-0 sm:col-start-2 sm:text-center">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div className="min-w-0">
             <h1 className="truncate text-xl font-semibold tracking-tight">Real-Time High-Traffic Inventory System</h1>
             <p className="mt-0.5 text-sm text-zinc-400">Sneaker drop dashboard with real-time sync</p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-3 justify-self-end sm:col-start-3">
+          <div className="flex flex-wrap items-center justify-start gap-3 sm:justify-end">
             <LiveBadge state={socketStatus} />
             {isAuthed ? <SessionBar /> : null}
           </div>
