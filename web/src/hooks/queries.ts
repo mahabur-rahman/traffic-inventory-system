@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { getDrops, getMyReservations, purchaseDrop, reserveDrop } from "../api";
+import { cancelReservation, createDrop, getDrops, getMyReservations, purchaseDrop, reserveDrop } from "../api";
 import { notifyError, notifySuccess } from "../lib/notify";
 import type { DropsListResponse } from "../types/drop";
 import type { ReservationsMeResponse } from "../types/reservation";
@@ -137,3 +137,55 @@ export function usePurchaseDrop() {
 // Prompt aliases
 export const useReserveMutation = useReserveDropMutation;
 export const usePurchaseMutation = usePurchaseDropMutation;
+
+export function useCancelReservationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (reservationId: string) => cancelReservation(reservationId),
+    onSuccess: async (data) => {
+      notifySuccess("Cancelled");
+
+      queryClient.setQueryData(myReservationsKey, (prev: any) => {
+        const typed = prev as ReservationsMeResponse | undefined;
+        const items = typed?.items ?? [];
+        return { items: items.filter((r) => r.id !== data.reservationId) } satisfies ReservationsMeResponse;
+      });
+
+      if (data.availableStock !== null) {
+        queryClient.setQueryData<DropsListResponse>(dropsKey, (prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            items: prev.items.map((d) =>
+              d.id === data.dropId ? { ...d, available_stock: data.availableStock ?? d.available_stock } : d
+            )
+          };
+        });
+      }
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: dropsKey }),
+        queryClient.invalidateQueries({ queryKey: myReservationsKey })
+      ]);
+    },
+    onError: (err) => {
+      notifyError(err);
+      void queryClient.invalidateQueries({ queryKey: myReservationsKey });
+    }
+  });
+}
+
+export function useCreateDropMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: Parameters<typeof createDrop>[0]) => createDrop(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: dropsKey });
+    },
+    onError: (err) => {
+      notifyError(err);
+    }
+  });
+}

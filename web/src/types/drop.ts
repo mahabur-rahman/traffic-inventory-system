@@ -9,6 +9,7 @@ export type Drop = {
   id: string;
   name: string;
   price: number;
+  currency: string;
   total_stock: number;
   available_stock: number;
   starts_at: string | null;

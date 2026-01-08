@@ -44,6 +44,7 @@ export const fetchMyReservations = getMyReservations;
 export type CreateDropInput = {
   name: string;
   price: number;
+  currency?: string;
   total_stock: number;
   starts_at?: string | null;
   ends_at?: string | null;

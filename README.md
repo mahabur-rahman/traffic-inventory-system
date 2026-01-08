@@ -1,7 +1,14 @@
-# Techzu — Real-Time High‑Traffic Inventory System (Sneaker Drop)
+# Techzu - Real-Time High-Traffic Inventory System (Sneaker Drop)
 
-Backend: Node.js + Express + Sequelize + Postgres (Neon) + Socket.IO  
-Frontend: React (Vite) + TypeScript + Tailwind + Redux Toolkit + TanStack Query + Socket.IO Client
+Backend: Node.js + Express + Sequelize + Postgres + Socket.IO  
+Frontend: React (Vite) + TypeScript + TailwindCSS + Redux Toolkit + TanStack Query + Socket.IO client
+
+Implements the assessment requirements:
+- Real-time dashboard with live stock updates across tabs
+- Atomic reservation (no oversell) with 60s TTL
+- Automatic stock recovery on expiry + socket broadcasts
+- Purchase flow (only if you reserved)
+- Drop creation API (no admin UI) + per-drop activity feed (top 3 recent purchasers)
 
 ## Quick Start (Local)
 
@@ -12,11 +19,11 @@ cd api
 npm install
 cp .env.example .env
 npm run db:migrate
-npm run db:seed:reset   # optional, recommended for demo data
+npm run db:seed:reset   # optional (recommended for demo data)
 npm run dev
 ```
 
-API runs at `http://localhost:4000`.
+API runs at `http://localhost:4000` (REST under `/api/*`).
 
 ### 2) Web
 
@@ -34,7 +41,7 @@ Web runs at `http://localhost:5173`.
 Never commit real credentials. Use `.env.example` as the template.
 
 **API** (`api/.env`)
-- `DATABASE_URL` (Neon Postgres connection string)
+- `DATABASE_URL` (Postgres connection string)
 - `PORT` (default `4000`)
 - `CORS_ORIGINS` (default `*`)
 - `RESERVATION_TTL_SECONDS` (default `60`)
@@ -44,26 +51,30 @@ Never commit real credentials. Use `.env.example` as the template.
 - `VITE_API_URL` (example: `http://localhost:4000/api`)
 - `VITE_SOCKET_URL` (example: `http://localhost:4000`)
 
-## Architecture Notes
+## Notes
 
-### Concurrency / Oversell Prevention
+- Prices are stored as integer cents in Postgres (`drops.price`).
+- Auth is intentionally lightweight for the assessment: web sends `X-User-Id` and `X-User-Name` headers.
 
-Reservations use an atomic Postgres update:
+## Architecture (Summary)
 
+### Oversell prevention (atomic reserve)
+
+Reservations decrement stock with a single atomic SQL statement:
 `UPDATE drops SET available_stock = available_stock - 1 WHERE id = ? AND available_stock > 0 RETURNING ...`
 
-Only one concurrent request can decrement the last unit; others get `OUT_OF_STOCK/CONFLICT`.
+Only one concurrent request can claim the last unit; others receive `409 OUT_OF_STOCK/CONFLICT`.
 
-### Reservation Expiration (60s TTL)
+### Expiration + stock recovery (60s TTL)
 
 An in-process worker polls every `EXPIRY_POLL_MS`:
 - marks expired `ACTIVE` reservations as `EXPIRED`
-- restores stock back to the related drop(s)
-- emits Socket.IO events after commit
+- restores stock on affected drops
+- emits Socket.IO events after the DB commit
 
 On boot, the worker runs one cleanup pass to recover from server restarts.
 
-### Real-Time Sync (Socket.IO)
+### Real-time sync (Socket.IO)
 
 Server emits after DB commit:
 - `STOCK_UPDATED` (reserve/cancel/expiry)
@@ -72,15 +83,23 @@ Server emits after DB commit:
 - `ACTIVITY_UPDATED`
 - `DROP_CREATED`
 
-Frontend uses TanStack Query for server state and applies socket events via `queryClient.setQueryData` (no full refetch for stock/activity).
+Frontend uses TanStack Query as the source of truth and applies socket events via cache updates (no full refetch for stock/activity).
 
-## Demo Checklist (Loom)
+## Loom Demo Checklist (2 minutes)
 
 1) Start API + Web (see Quick Start)
-2) Open **two browser windows** side-by-side
-3) Sign in on both (session simulated; UUID sent via `X-User-Id`)
-4) Reserve in window A → stock updates instantly in window B
-5) Try last-stock concurrency → one succeeds, other shows: “Someone else reserved it first”
-6) Wait ~60s → reservation expires, stock recovers (both windows update)
-7) Reserve + Purchase → activity feed (top 3 purchasers) updates on each drop card
+2) Open **two browser windows** side-by-side at `http://localhost:5173`
+3) Sign in on both
+4) Reserve in window A -> stock updates instantly in window B
+5) Click Reserve quickly in both windows on last stock -> only one succeeds (toast shows concurrency)
+6) Wait ~60s -> reservation expires, stock recovers (both windows update)
+7) Reserve + Purchase -> activity feed (top 3 purchasers) updates on each drop card
 
+Tip: You can create new drops via the API (`POST /api/drops`) or from the web app’s optional “Create Drop (API)” panel.
+
+## Production Build
+
+```bash
+cd api && npm run build
+cd web && npm run build
+```

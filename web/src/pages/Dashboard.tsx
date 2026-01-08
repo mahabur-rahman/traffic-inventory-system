@@ -10,6 +10,7 @@ import {
   myReservationsKey,
   useDropsQuery,
   useMyReservationsQuery,
+  useCancelReservationMutation,
   usePurchaseDropMutation,
   useReserveDropMutation
 } from "../hooks/queries";
@@ -20,6 +21,7 @@ import { StatusBar } from "../components/StatusBar";
 import { DropCard } from "../components/DropCard";
 import { DropCardSkeleton } from "../components/DropCardSkeleton";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { CreateDropPanel } from "../components/CreateDropPanel";
 
 export function Dashboard() {
   const [busyDropId, setBusyDropId] = useState<string | null>(null);
@@ -39,6 +41,7 @@ export function Dashboard() {
   const reservationsQuery = useMyReservationsQuery();
   const reserveMutation = useReserveDropMutation();
   const purchaseMutation = usePurchaseDropMutation();
+  const cancelMutation = useCancelReservationMutation();
 
   const loading = dropsQuery.isFetching || reservationsQuery.isFetching;
   const ok =
@@ -102,6 +105,20 @@ export function Dashboard() {
     setBusyDropId(dropId);
     try {
       await purchaseMutation.mutateAsync(dropId);
+    } finally {
+      setBusyDropId(null);
+      inFlight.current.delete(key);
+    }
+  }
+
+  async function cancel(dropId: string, reservationId: string) {
+    const key = `cancel:${reservationId}`;
+    if (inFlight.current.has(key)) return;
+    inFlight.current.add(key);
+    setBusyDropId(dropId);
+    try {
+      await cancelMutation.mutateAsync(reservationId);
+      flashDrop(dropId);
     } finally {
       setBusyDropId(null);
       inFlight.current.delete(key);
@@ -223,6 +240,10 @@ export function Dashboard() {
         <StatusBar lastUpdatedAt={lastUpdatedAt} loading={loading} ok={ok} socketState={socketStatus} />
       </section>
 
+      <div className="mt-4">
+        <CreateDropPanel />
+      </div>
+
       {errorMessage && <ErrorBanner message={errorMessage} onRetry={refresh} retrying={loading} />}
 
       <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -236,6 +257,7 @@ export function Dashboard() {
               drop={d}
               onReserve={reserve}
               onPurchase={purchase}
+              onCancel={cancel}
               busy={busyDropId === d.id}
               reservation={reservationsByDropId[d.id] ?? null}
               now={now}

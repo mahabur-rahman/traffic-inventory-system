@@ -25,6 +25,7 @@ export async function createDrop(input: CreateDropInput) {
       {
         name: input.name,
         price: input.price,
+        currency: input.currency ?? "USD",
         totalStock: input.total_stock,
         availableStock: input.total_stock,
         startsAt: input.starts_at ?? null,

@@ -5,16 +5,27 @@ import { sendSuccess } from "../utils/respond";
 import { createDrop, fetchLatestPurchasersByDropIds, listActiveDrops } from "../services/drops.service";
 import { emitDropCreated, emitStockUpdated } from "../realtime/socket";
 
+function computeEffectiveStatus(drop: any) {
+  const status = String(drop?.status ?? "");
+  if (status !== "scheduled") return status;
+
+  const startsAt = drop?.startsAt ? new Date(drop.startsAt) : null;
+  if (!startsAt || Number.isNaN(startsAt.getTime())) return status;
+
+  return startsAt.getTime() <= Date.now() ? "live" : status;
+}
+
 function serializeDrop(drop: any) {
   return {
     id: drop.id,
     name: drop.name,
     price: drop.price,
+    currency: drop.currency ?? "USD",
     total_stock: drop.totalStock,
     available_stock: drop.availableStock,
     starts_at: drop.startsAt ? new Date(drop.startsAt).toISOString() : null,
     ends_at: drop.endsAt ? new Date(drop.endsAt).toISOString() : null,
-    status: drop.status,
+    status: computeEffectiveStatus(drop),
     created_by: drop.createdBy,
     created_at: drop.createdAt ? new Date(drop.createdAt).toISOString() : null
   };

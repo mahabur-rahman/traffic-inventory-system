@@ -23,18 +23,19 @@ export function notifyWarning(message: string) {
 
 export function notifyError(err: unknown) {
   const e = normalizeError(err);
-  const uiCode = normalizeUiErrorCode(e.code);
   const message = `${e.title}: ${e.message}`;
 
+  if (e.code === "ALREADY_RESERVED") return notifyInfo("Already reserved");
+  if (e.code === "RESERVATION_REQUIRED") return notifyInfo("Reserve first, then purchase");
+  if (e.code === "RESERVATION_EXPIRED") return notifyInfo(message);
+
+  const uiCode = normalizeUiErrorCode(e.code);
   if (uiCode === "OUT_OF_STOCK") return notifyWarning("Someone else reserved it first");
   if (uiCode === "DROP_NOT_ACTIVE") return notifyWarning(message);
   if (uiCode === "CONFLICT") return notifyWarning("Someone else reserved it first");
   if (uiCode === "VALIDATION_ERROR") return toast.error(message, { style: baseStyle });
   if (uiCode === "UNAUTHORIZED") return notifyInfo("Sign in to continue");
   if (uiCode === "NETWORK_ERROR") return toast.error(message, { style: baseStyle });
-
-  if (e.code === "RESERVATION_EXPIRED") return notifyInfo(message);
-  if (e.code === "ALREADY_RESERVED") return notifyInfo(message);
 
   return toast.error(message, { style: baseStyle });
 }

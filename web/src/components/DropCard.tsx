@@ -7,14 +7,26 @@ export type DropCardProps = {
   drop: Drop;
   onReserve: (dropId: string) => Promise<void>;
   onPurchase: (dropId: string) => Promise<void>;
+  onCancel?: (dropId: string, reservationId: string) => Promise<void>;
   busy?: boolean;
   reservation?: MyReservation | null;
   now?: Date;
   stockFlash?: boolean;
 };
 
-function formatMoney(value: number) {
-  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(value);
+function formatMoneyFromCents(cents: number, currency: string) {
+  const amount = cents / 100;
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currency || "USD",
+      currencyDisplay: "symbol",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  } catch {
+    return `$${amount.toFixed(2)}`;
+  }
 }
 
 function statusStyles(status: string) {
@@ -77,7 +89,7 @@ export function DropCard(props: DropCardProps) {
             </span>
           </div>
           <div className="mt-1 text-sm text-zinc-400">
-            Price <span className="text-zinc-200">{formatMoney(d.price)}</span>
+            Price <span className="text-zinc-200">{formatMoneyFromCents(d.price, d.currency ?? "USD")}</span>
             <span className="mx-2 text-zinc-700">•</span>
             Total <span className="tabular-nums text-zinc-200">{d.total_stock}</span>
           </div>
@@ -110,36 +122,51 @@ export function DropCard(props: DropCardProps) {
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <button
-          className={[
-            "inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200",
-            canReserve && !props.busy ? "bg-white text-zinc-900 hover:bg-zinc-200" : "bg-zinc-800 text-zinc-200"
-          ].join(" ")}
-          style={!hasActiveReservation ? { gridColumn: "1 / -1" } : undefined}
-          disabled={props.busy || !canReserve}
-          onClick={async () => {
-            try {
-              await props.onReserve(d.id);
-            } catch {}
-          }}
-        >
-          {props.busy ? <Spinner className={canReserve ? "text-zinc-700" : "text-zinc-200"} /> : null}
-          <span>{reserveLabel}</span>
-        </button>
-
-        {hasActiveReservation && (
+        {!hasActiveReservation ? (
           <button
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-3 py-2 text-sm font-semibold text-emerald-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-200"
-            disabled={props.busy}
+            className={[
+              "inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200",
+              canReserve && !props.busy ? "bg-white text-zinc-900 hover:bg-zinc-200" : "bg-zinc-800 text-zinc-200"
+            ].join(" ")}
+            style={{ gridColumn: "1 / -1" }}
+            disabled={props.busy || !canReserve}
             onClick={async () => {
               try {
-                await props.onPurchase(d.id);
+                await props.onReserve(d.id);
               } catch {}
             }}
           >
-            {props.busy ? <Spinner className="text-emerald-950" /> : null}
-            <span>{props.busy ? "Purchasing" : "Purchase"}</span>
+            {props.busy ? <Spinner className={canReserve ? "text-zinc-700" : "text-zinc-200"} /> : null}
+            <span>{reserveLabel}</span>
           </button>
+        ) : (
+          <>
+            <button
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-3 py-2 text-sm font-semibold text-emerald-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-200"
+              disabled={props.busy}
+              onClick={async () => {
+                try {
+                  await props.onPurchase(d.id);
+                } catch {}
+              }}
+            >
+              {props.busy ? <Spinner className="text-emerald-950" /> : null}
+              <span>{props.busy ? "Purchasing" : "Purchase"}</span>
+            </button>
+
+            <button
+              className="inline-flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-semibold text-zinc-200 shadow-sm hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+              disabled={props.busy || !props.onCancel || !reservation?.id}
+              onClick={async () => {
+                if (!reservation?.id) return;
+                try {
+                  await props.onCancel?.(d.id, reservation.id);
+                } catch {}
+              }}
+            >
+              Cancel
+            </button>
+          </>
         )}
       </div>
 
