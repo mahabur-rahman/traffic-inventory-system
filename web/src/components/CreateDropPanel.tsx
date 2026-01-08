@@ -37,6 +37,26 @@ function toCentsFromDollarsString(value: string) {
 function toIsoOrNull(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return null;
+
+  // Prefer parsing datetime-local strings deterministically as local time.
+  // Supported formats:
+  // - YYYY-MM-DDTHH:mm
+  // - YYYY-MM-DDTHH:mm:ss
+  // - ISO strings (fallback to Date parsing)
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(trimmed);
+  if (match) {
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const hour = Number(match[4]);
+    const minute = Number(match[5]);
+    const second = match[6] ? Number(match[6]) : 0;
+
+    const d = new Date(year, month - 1, day, hour, minute, second, 0);
+    if (Number.isNaN(d.getTime())) throw new Error("Invalid date");
+    return d.toISOString();
+  }
+
   const d = new Date(trimmed);
   if (Number.isNaN(d.getTime())) throw new Error("Invalid date");
   return d.toISOString();
@@ -146,13 +166,22 @@ export function CreateDropPanel() {
                     const stock = Number.parseInt(totalStock, 10);
                     if (!Number.isFinite(stock) || stock < 0) throw new Error("Invalid stock");
 
+                    if (status === "scheduled" && !startsAt.trim()) {
+                      throw new Error("Starts at is required when status is scheduled");
+                    }
+                    const startsIso = toIsoOrNull(startsAt);
+                    const endsIso = toIsoOrNull(endsAt);
+                    if (startsIso && endsIso && new Date(endsIso) <= new Date(startsIso)) {
+                      throw new Error("Ends at must be after starts at");
+                    }
+
                     await createDrop.mutateAsync({
                       name,
                       currency: currency.trim().toUpperCase(),
                       price,
                       total_stock: stock,
-                      starts_at: toIsoOrNull(startsAt),
-                      ends_at: toIsoOrNull(endsAt),
+                      starts_at: startsIso,
+                      ends_at: endsIso,
                       status: status === "auto" ? undefined : status
                     });
 
@@ -258,7 +287,9 @@ export function CreateDropPanel() {
                     onChange={(e) => setStartsAt(e.target.value)}
                     disabled={disabled}
                     type="datetime-local"
+                    step={60}
                   />
+                  <div className="text-xs text-zinc-500">Uses your device's local time.</div>
                 </div>
 
                 <div className="space-y-2">
@@ -272,7 +303,10 @@ export function CreateDropPanel() {
                     onChange={(e) => setEndsAt(e.target.value)}
                     disabled={disabled}
                     type="datetime-local"
+                    step={60}
+                    min={startsAt || undefined}
                   />
+                  <div className="text-xs text-zinc-500">Leave empty for no end time.</div>
                 </div>
 
                 <div className="sm:col-span-2 mt-1 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -307,4 +341,3 @@ export function CreateDropPanel() {
     </>
   );
 }
-

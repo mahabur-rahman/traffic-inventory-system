@@ -10,7 +10,8 @@ export type CreateDropInput = z.infer<typeof createDropBodySchema> & { created_b
 
 function computeStatus(input: z.infer<typeof createDropBodySchema>) {
   if (input.status) return input.status;
-  if (!input.starts_at) return "draft";
+  // No start time means "go live now" (dashboard shows scheduled/live only).
+  if (!input.starts_at) return "live";
   return input.starts_at.getTime() > Date.now() ? "scheduled" : "live";
 }
 
