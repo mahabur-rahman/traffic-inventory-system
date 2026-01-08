@@ -41,11 +41,13 @@ export function LoginCard() {
         Enter a username to continue. Optionally provide a User ID to simulate multiple users across tabs.
       </p>
 
-      <form className="mt-6 space-y-4 sm:space-y-5" onSubmit={onSubmit}>
-        <label className="block text-sm font-semibold text-zinc-200">
-          Username <span className="text-zinc-500">(required)</span>
+      <form className="mt-8 space-y-6" onSubmit={onSubmit}>
+        <label className="block space-y-2">
+          <div className="text-sm font-semibold text-zinc-200">
+            Username <span className="text-zinc-500">(required)</span>
+          </div>
           <input
-            className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950/60 px-5 py-4 text-lg text-zinc-100 placeholder:text-zinc-600 shadow-sm ring-1 ring-transparent transition focus:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-xl"
+            className="w-full rounded-2xl border border-zinc-800 bg-zinc-950/60 px-5 py-4 text-lg text-zinc-100 placeholder:text-zinc-600 shadow-sm ring-1 ring-transparent transition focus:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-xl"
             placeholder="alice"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -55,10 +57,10 @@ export function LoginCard() {
           />
         </label>
 
-        <label className="block text-sm font-semibold text-zinc-200">
-          User ID (optional UUID)
+        <label className="block space-y-2">
+          <div className="text-sm font-semibold text-zinc-200">User ID (optional UUID)</div>
           <input
-            className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950/60 px-5 py-4 font-mono text-lg text-zinc-100 placeholder:text-zinc-600 shadow-sm ring-1 ring-transparent transition focus:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-xl"
+            className="w-full rounded-2xl border border-zinc-800 bg-zinc-950/60 px-5 py-4 font-mono text-lg text-zinc-100 placeholder:text-zinc-600 shadow-sm ring-1 ring-transparent transition focus:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-xl"
             placeholder="e.g. 2f1e2b9d-8a9d-4b77-9c4f-0b21d0b2f0c1"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
