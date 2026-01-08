@@ -12,28 +12,34 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-black text-zinc-50">
       <header className="sticky top-0 z-10 border-b border-zinc-900/70 bg-zinc-950/70 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-center sm:gap-10 sm:py-5">
-          <div className="min-w-0 py-1">
-            <h1 className="truncate text-xl font-semibold tracking-tight">Real-Time High-Traffic Inventory System</h1>
-            <p className="mt-0.5 text-sm text-zinc-400">Sneaker drop dashboard with real-time sync</p>
-          </div>
+        <div className="mx-auto w-full max-w-screen-2xl px-4 py-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-[1fr_auto] items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
+            <div className="hidden sm:block" />
 
-          <div className="flex flex-wrap items-center justify-start gap-3 sm:justify-end">
-            <LiveBadge state={socketStatus} />
-            {isAuthed ? <SessionBar /> : null}
+            <div className="min-w-0 sm:text-center">
+              <h1 className="truncate text-xl font-semibold tracking-tight">
+                Real-Time High-Traffic Inventory System
+              </h1>
+              <p className="mt-0.5 text-sm text-zinc-400">Sneaker drop dashboard with real-time sync</p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-end gap-3 justify-self-end sm:col-start-3">
+              <LiveBadge state={socketStatus} />
+              {isAuthed ? <SessionBar /> : null}
+            </div>
           </div>
         </div>
       </header>
 
       {!isAuthed ? (
-        <main className="relative flex min-h-[calc(100vh-104px)] items-center justify-center px-4 py-14">
+        <main className="relative flex min-h-[calc(100vh-104px)] items-center justify-center px-4 py-14 sm:px-6 lg:px-8">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(16,185,129,0.12),_rgba(0,0,0,0)_55%)]" />
           <div className="relative z-10 flex w-full justify-center">
             <LoginCard />
           </div>
         </main>
       ) : (
-        <main className="mx-auto max-w-6xl px-4 py-10">
+        <main className="mx-auto max-w-screen-2xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="rounded-2xl border border-zinc-800 bg-zinc-950/40 p-5 text-base text-zinc-300 shadow-sm">
             <div className="flex items-start gap-3">
               <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-200">
