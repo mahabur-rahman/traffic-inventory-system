@@ -61,7 +61,9 @@ export async function listActiveDrops(params: ListDropsParams) {
     where,
     order: [
       ["startsAt", "ASC"],
-      ["createdAt", "DESC"]
+      ["createdAt", "DESC"],
+      // Deterministic tie-breaker to keep ordering stable across refetches
+      ["id", "ASC"]
     ],
     limit: params.limit,
     offset: params.offset
