@@ -124,3 +124,8 @@ Purchase:
 curl -X POST http://localhost:4000/api/drops/<DROP_UUID>/purchase ^
   -H "X-User-Id: <USER_UUID>"
 ```
+
+## Seeding
+
+- Default (development): `npm run db:seed` **truncates and reseeds** so you always get a clean dataset (15+ rows per table).
+- Append (no truncate): `npm run db:seed -- --no-reset`
