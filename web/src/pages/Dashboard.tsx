@@ -228,21 +228,20 @@ export function Dashboard() {
             <h2 className="text-xl font-semibold tracking-tight">Active Drops</h2>
             <p className="mt-1 text-sm text-zinc-400">Real-time stock updates via WebSocket</p>
           </div>
-          <button
-            className="inline-flex items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold shadow-sm hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
-            onClick={refresh}
-            disabled={loading}
-          >
-            {loading ? "Refreshing..." : "Refresh"}
-          </button>
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <CreateDropPanel />
+            <button
+              className="inline-flex items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-semibold shadow-sm hover:bg-zinc-900 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+              onClick={refresh}
+              disabled={loading}
+            >
+              {loading ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         </div>
 
         <StatusBar lastUpdatedAt={lastUpdatedAt} loading={loading} ok={ok} socketState={socketStatus} />
       </section>
-
-      <div className="mt-6">
-        <CreateDropPanel />
-      </div>
 
       {errorMessage && <ErrorBanner message={errorMessage} onRetry={refresh} retrying={loading} />}
 
