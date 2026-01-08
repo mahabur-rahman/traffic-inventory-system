@@ -36,7 +36,7 @@ Requests identify a user via headers:
 - `X-User-Id: <uuid>`
 - `X-User-Name: <string>` (optional)
 
-In `NODE_ENV=development`, if `X-User-Id` is a valid UUID but doesn’t exist yet, the API will auto-create a user (best-effort).
+In `NODE_ENV=development`, if `X-User-Id` is a valid UUID but doesn't exist yet, the API will auto-create a user (best-effort).
 
 ## Core API
 
@@ -69,7 +69,7 @@ Dev helper: `POST /api/internal/expire-now` (dev only)
 - `POST /api/drops/:dropId/purchase` (auth required)
   - Requires an ACTIVE, unexpired reservation for that drop by the same user
   - Marks reservation `CONSUMED` and creates a `paid` purchase
-  - Stock is decremented at reserve time; purchase consumes the reservation so it won’t be restored.
+  - Stock is decremented at reserve time; purchase consumes the reservation so it won't be restored.
 
 ## Socket.IO Events
 
