@@ -71,7 +71,7 @@ export function CreateDropPanel() {
   const [totalStock, setTotalStock] = useState("10");
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
-  const [status, setStatus] = useState<"auto" | "draft" | "scheduled" | "live" | "ended" | "cancelled">("auto");
+  const [status, setStatus] = useState<"live" | "scheduled">("live");
 
   const createDrop = useCreateDropMutation();
   const disabled = createDrop.isPending;
@@ -192,6 +192,9 @@ export function CreateDropPanel() {
                     }
                     const startsIso = toIsoOrNull(startsAt);
                     const endsIso = toIsoOrNull(endsAt);
+                    if (status === "live" && startsIso && new Date(startsIso).getTime() > Date.now()) {
+                      throw new Error("For a future start time, set status to scheduled");
+                    }
                     if (startsIso && endsIso && new Date(endsIso) <= new Date(startsIso)) {
                       throw new Error("Ends at must be after starts at");
                     }
@@ -203,7 +206,7 @@ export function CreateDropPanel() {
                       total_stock: stock,
                       starts_at: startsIso,
                       ends_at: endsIso,
-                      status: status === "auto" ? undefined : status
+                      status
                     });
 
                     notifySuccess("Drop created");
@@ -288,12 +291,8 @@ export function CreateDropPanel() {
                     onChange={(e) => setStatus(e.target.value as any)}
                     disabled={disabled}
                   >
-                    <option value="auto">Auto (recommended)</option>
-                    <option value="draft">draft</option>
-                    <option value="scheduled">scheduled</option>
                     <option value="live">live</option>
-                    <option value="ended">ended</option>
-                    <option value="cancelled">cancelled</option>
+                    <option value="scheduled">scheduled</option>
                   </select>
                 </div>
 
