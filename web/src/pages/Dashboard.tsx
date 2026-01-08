@@ -226,7 +226,6 @@ export function Dashboard() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold tracking-tight">Active Drops</h2>
-            <p className="mt-1 text-sm text-zinc-400">Real-time stock updates via WebSocket</p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3">
             <CreateDropPanel />
