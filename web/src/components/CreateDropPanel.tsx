@@ -159,9 +159,6 @@ export function CreateDropPanel() {
                       API
                     </span>
                   </div>
-                  <div className="mt-1 text-sm text-zinc-400">
-                    Creates a new drop via <span className="font-mono">POST /api/drops</span>.
-                  </div>
                 </div>
 
                 <button
@@ -361,9 +358,7 @@ export function CreateDropPanel() {
                 </div>
 
                 <div className="sm:col-span-2 mt-1 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="text-sm text-zinc-500">
-                    New drops broadcast to all clients via <span className="font-mono">DROP_CREATED</span>.
-                  </div>
+                  <div />
 
                   <div className="flex items-center justify-end gap-3">
                     <button
