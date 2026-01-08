@@ -35,17 +35,17 @@ export function LoginCard() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-xl rounded-3xl border border-zinc-800/70 bg-zinc-950/50 p-8 shadow-2xl shadow-black/30 backdrop-blur">
-      <h2 className="text-2xl font-semibold tracking-tight text-zinc-50">Sign in</h2>
+    <div className="mx-auto w-full max-w-lg rounded-3xl border border-zinc-800/70 bg-zinc-950/50 p-6 shadow-2xl shadow-black/30 backdrop-blur sm:max-w-xl sm:p-8">
+      <h2 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">Sign in</h2>
       <p className="mt-2 text-base leading-relaxed text-zinc-400">
         Enter a username to continue. Optionally provide a User ID to simulate multiple users across tabs.
       </p>
 
-      <form className="mt-6 space-y-5" onSubmit={onSubmit}>
+      <form className="mt-6 space-y-4 sm:space-y-5" onSubmit={onSubmit}>
         <label className="block text-sm font-semibold text-zinc-200">
           Username <span className="text-zinc-500">(required)</span>
           <input
-            className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-base text-zinc-100 placeholder:text-zinc-600 shadow-sm focus:border-zinc-600 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+            className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-base text-zinc-100 placeholder:text-zinc-600 shadow-sm focus:border-zinc-600 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-lg"
             placeholder="alice"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -58,7 +58,7 @@ export function LoginCard() {
         <label className="block text-sm font-semibold text-zinc-200">
           User ID (optional UUID)
           <input
-            className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 font-mono text-base text-zinc-100 placeholder:text-zinc-600 shadow-sm focus:border-zinc-600 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+            className="mt-2 w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 font-mono text-base text-zinc-100 placeholder:text-zinc-600 shadow-sm focus:border-zinc-600 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-lg"
             placeholder="e.g. 2f1e2b9d-8a9d-4b77-9c4f-0b21d0b2f0c1"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
@@ -67,7 +67,7 @@ export function LoginCard() {
         </label>
 
         <button
-          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-base font-semibold text-zinc-900 shadow-sm hover:bg-zinc-200 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-base font-semibold text-zinc-900 shadow-sm hover:bg-zinc-200 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200 sm:text-lg"
           disabled={loading}
           type="submit"
         >

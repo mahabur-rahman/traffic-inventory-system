@@ -5,7 +5,7 @@ import { useCreateDropMutation } from "../hooks/queries";
 
 function inputClassName(disabled?: boolean) {
   return [
-    "w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-base text-zinc-100 shadow-sm",
+    "w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-base text-zinc-100 shadow-sm sm:text-lg",
     "placeholder:text-zinc-600",
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-200",
     disabled ? "opacity-60" : ""

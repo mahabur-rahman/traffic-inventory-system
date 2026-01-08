@@ -75,7 +75,7 @@ export function DropCard(props: DropCardProps) {
   return (
     <div
       className={[
-        "rounded-3xl border bg-zinc-950/45 p-6 shadow-sm transition-colors hover:bg-zinc-950/70",
+        "rounded-3xl border bg-zinc-950/45 p-5 shadow-sm transition-colors hover:bg-zinc-950/70 sm:p-6",
         props.stockFlash ? "border-emerald-500/60 shadow-emerald-500/10" : "border-zinc-800 hover:border-zinc-700"
       ].join(" ")}
     >

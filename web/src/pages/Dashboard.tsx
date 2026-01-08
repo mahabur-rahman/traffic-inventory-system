@@ -246,7 +246,7 @@ export function Dashboard() {
 
       {errorMessage && <ErrorBanner message={errorMessage} onRetry={refresh} retrying={loading} />}
 
-      <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {showSkeletons &&
           Array.from({ length: 6 }).map((_, i) => <DropCardSkeleton key={`s-${i}`} />)}
 
